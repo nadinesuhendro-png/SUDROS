@@ -2,12 +2,14 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #0f1115;
-  --primary: #16a34a;
+  --foreground: #0f2a52;
+  --primary: #1d6fb8;
+  --primary-light: #2aa8e0;
+  --primary-dark: #0b2a52;
   --primary-foreground: #ffffff;
-  --muted: #f4f4f5;
-  --muted-foreground: #6b7280;
-  --border: #e4e4e7;
+  --muted: #f4f6f9;
+  --muted-foreground: #64748b;
+  --border: #e2e8f0;
   --radius: 0.75rem;
 }
 
