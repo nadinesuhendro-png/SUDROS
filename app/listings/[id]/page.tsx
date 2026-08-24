@@ -1,10 +1,10 @@
 // PATH: app/listings/[id]/page.tsx
 // AKSI: UPDATE FILE
 
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Navbar } from "@/components/navbar";
 import { createClient } from "@/lib/supabase/server";
+import ListingGallery from "./ListingGallery";
 
 type ListingDetail = {
   id: string;
@@ -47,44 +47,15 @@ export default async function ListingDetailPage({
     notFound();
   }
 
-  const sortedImages = [...(listing.listing_images || [])].sort(
-    (a, b) => a.sort_order - b.sort_order
-  );
+  const sortedImages = [...(listing.listing_images || [])]
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((img) => img.image_url);
 
   return (
     <>
       <Navbar />
       <main className="mx-auto flex max-w-2xl flex-col gap-4 p-6">
-        {sortedImages.length > 0 ? (
-          <div className="flex flex-col gap-2">
-            <div className="relative aspect-square w-full overflow-hidden rounded-[var(--radius)] bg-gray-100">
-              <Image
-                src={sortedImages[0].image_url}
-                alt={listing.title}
-                fill
-                priority
-                className="object-cover"
-              />
-            </div>
-            {sortedImages.length > 1 ? (
-              <div className="flex gap-2 overflow-x-auto">
-                {sortedImages.slice(1).map((img) => (
-                  <div
-                    key={img.image_url}
-                    className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-[var(--radius)] bg-gray-100"
-                  >
-                    <Image
-                      src={img.image_url}
-                      alt={listing.title}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
+        <ListingGallery images={sortedImages} title={listing.title} />
 
         <h1 className="text-xl font-semibold" style={{ color: "var(--primary-dark)" }}>
           {listing.title}
@@ -120,4 +91,4 @@ export default async function ListingDetailPage({
       </main>
     </>
   );
-              }
+}
