@@ -48,6 +48,13 @@ export default async function DashboardPage() {
       >
         Buat Listing Baru
       </Link>
+      <Link
+        href="/dashboard/listings"
+        className="rounded-[var(--radius)] px-4 py-2 text-sm font-medium text-white"
+        style={{ backgroundColor: "var(--primary)" }}
+      >
+        Listing Saya
+      </Link>
       <form action={logout}>
         <button
           type="submit"
