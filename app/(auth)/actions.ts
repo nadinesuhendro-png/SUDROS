@@ -46,7 +46,7 @@ export async function register(formData: FormData) {
     redirect(`/register?error=${encodeURIComponent(error.message)}`);
   }
 
-  redirect("/register/check-email");
+  redirect("/dashboard");
 }
 
 export async function logout() {
