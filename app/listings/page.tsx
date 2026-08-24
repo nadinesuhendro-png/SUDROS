@@ -127,3 +127,23 @@ export default async function MyListingsPage() {
     </main>
   );
                   }
+export async function deleteListing(formData: FormData) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const id = formData.get("id") as string;
+  if (!id) {
+    redirect("/dashboard/listings");
+  }
+
+  await supabase.from("listings").delete().eq("id", id).eq("owner_id", user.id);
+
+  redirect("/dashboard/listings");
+}
