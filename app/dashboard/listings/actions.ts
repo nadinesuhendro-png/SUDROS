@@ -1,5 +1,5 @@
 // PATH: app/dashboard/listings/actions.ts
-// AKSI: UPDATE FILE
+// AKSI: UPDATE FILE (gabungan lengkap, tambah deleteListing)
 
 "use server";
 
@@ -90,6 +90,28 @@ export async function createListing(input: CreateListingInput) {
 
   redirect("/dashboard");
 }
+
+export async function deleteListing(formData: FormData) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const id = formData.get("id") as string;
+  if (!id) {
+    redirect("/dashboard/listings");
+  }
+
+  await supabase.from("listings").delete().eq("id", id).eq("owner_id", user.id);
+
+  redirect("/dashboard/listings");
+}
+
 export async function updateListing(formData: FormData) {
   const supabase = await createClient();
 
@@ -215,4 +237,4 @@ export async function deleteListingImage(formData: FormData) {
   await supabase.from("listing_images").delete().eq("id", imageId);
 
   redirect(`/dashboard/listings/${listingId}/edit`);
-}
+        }
