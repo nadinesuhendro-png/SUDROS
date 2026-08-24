@@ -1,3 +1,6 @@
+// PATH: lib/supabase/client.ts
+// AKSI: UPDATE/CEK FILE (pastikan isinya seperti ini)
+
 import { createBrowserClient } from "@supabase/ssr";
 
 export function createClient() {
