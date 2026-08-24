@@ -4,6 +4,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/(auth)/actions";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 type Profile = {
   username: string;
@@ -40,6 +41,13 @@ export default async function DashboardPage() {
       ) : (
         <p className="text-sm text-red-500">Profil belum ditemukan</p>
       )}
+      <Link
+        href="/dashboard/listings/new"
+        className="rounded-[var(--radius)] px-4 py-2 text-sm font-medium text-white"
+        style={{ backgroundColor: "var(--primary)" }}
+      >
+        Buat Listing Baru
+      </Link>
       <form action={logout}>
         <button
           type="submit"
