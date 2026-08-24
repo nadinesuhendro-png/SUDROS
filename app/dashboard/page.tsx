@@ -1,5 +1,14 @@
+// PATH: app/dashboard/page.tsx
+// AKSI: GANTI SELURUH ISI FILE
+
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/(auth)/actions";
+import { redirect } from "next/navigation";
+
+type Profile = {
+  username: string;
+  role: string;
+};
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -7,12 +16,30 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username, role")
+    .eq("id", user.id)
+    .single<Profile>();
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
       <h1 className="text-lg font-semibold" style={{ color: "var(--primary-dark)" }}>
         Dashboard SUDROS
       </h1>
-      <p className="text-sm text-[var(--muted-foreground)]">{user?.email}</p>
+      <p className="text-sm text-[var(--muted-foreground)]">{user.email}</p>
+      {profile ? (
+        <div className="text-sm text-[var(--muted-foreground)]">
+          <p>Username: {profile.username}</p>
+          <p>Role: {profile.role}</p>
+        </div>
+      ) : (
+        <p className="text-sm text-red-500">Profil belum ditemukan</p>
+      )}
       <form action={logout}>
         <button
           type="submit"
