@@ -1,16 +1,23 @@
 // PATH: app/dashboard/listings/actions.ts
-// AKSI: BUAT FILE BARU
+// AKSI: UPDATE FILE
 
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
-type NewListingResult = {
+type CreateListingInput = {
   id: string;
+  title: string;
+  description: string;
+  price: number;
+  categoryId: string;
+  locationCity: string;
+  locationArea: string;
+  imageUrls: string[];
 };
 
-export async function createListing(formData: FormData) {
+export async function createListing(input: CreateListingInput) {
   const supabase = await createClient();
 
   const {
@@ -21,12 +28,8 @@ export async function createListing(formData: FormData) {
     redirect("/login");
   }
 
-  const title = ((formData.get("title") as string) || "").trim();
-  const description = ((formData.get("description") as string) || "").trim();
-  const priceRaw = formData.get("price") as string;
-  const categoryId = formData.get("category_id") as string;
-  const locationCity = ((formData.get("location_city") as string) || "").trim();
-  const locationArea = ((formData.get("location_area") as string) || "").trim();
+  const title = input.title.trim();
+  const locationCity = input.locationCity.trim();
 
   if (!title) {
     redirect(
@@ -34,14 +37,13 @@ export async function createListing(formData: FormData) {
     );
   }
 
-  const price = Number(priceRaw);
-  if (!Number.isFinite(price) || price < 0) {
+  if (!Number.isFinite(input.price) || input.price < 0) {
     redirect(
       `/dashboard/listings/new?error=${encodeURIComponent("Harga tidak valid")}`
     );
   }
 
-  if (!categoryId) {
+  if (!input.categoryId) {
     redirect(
       `/dashboard/listings/new?error=${encodeURIComponent("Kategori wajib dipilih")}`
     );
@@ -56,16 +58,17 @@ export async function createListing(formData: FormData) {
   const { data: listing, error: insertError } = await supabase
     .from("listings")
     .insert({
+      id: input.id,
       title,
-      description: description || null,
-      price: Math.round(price),
-      category_id: categoryId,
+      description: input.description.trim() || null,
+      price: Math.round(input.price),
+      category_id: input.categoryId,
       location_city: locationCity,
-      location_area: locationArea || null,
+      location_area: input.locationArea.trim() || null,
       owner_id: user.id,
     })
     .select("id")
-    .single<NewListingResult>();
+    .single<{ id: string }>();
 
   if (insertError || !listing) {
     redirect(
@@ -75,37 +78,15 @@ export async function createListing(formData: FormData) {
     );
   }
 
-  const images = formData.getAll("images") as File[];
-  let sortOrder = 0;
-
-  for (const file of images) {
-    if (!file || file.size === 0) {
-      continue;
-    }
-
-    const filePath = `${user.id}/${listing.id}/${sortOrder}-${file.name}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("listing-images")
-      .upload(filePath, file);
-
-    if (uploadError) {
-      sortOrder += 1;
-      continue;
-    }
-
-    const { data: publicUrlData } = supabase.storage
-      .from("listing-images")
-      .getPublicUrl(filePath);
-
-    await supabase.from("listing_images").insert({
+  if (input.imageUrls.length > 0) {
+    const rows = input.imageUrls.map((url, index) => ({
       listing_id: listing.id,
-      image_url: publicUrlData.publicUrl,
-      sort_order: sortOrder,
-    });
+      image_url: url,
+      sort_order: index,
+    }));
 
-    sortOrder += 1;
+    await supabase.from("listing_images").insert(rows);
   }
 
   redirect("/dashboard");
-  }
+}
