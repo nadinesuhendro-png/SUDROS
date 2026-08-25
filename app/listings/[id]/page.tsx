@@ -1,5 +1,5 @@
 // PATH: app/listings/[id]/page.tsx
-// AKSI: UPDATE FILE (tambah tombol Laporkan)
+// AKSI: UPDATE FILE (tambah favorite button + view/WA tracking)
 
 import Image from "next/image";
 import Link from "next/link";
@@ -8,6 +8,8 @@ import { Navbar } from "@/components/navbar";
 import { createClient } from "@/lib/supabase/server";
 import ListingGallery from "./ListingGallery";
 import ReportButton from "./ReportButton";
+import FavoriteButton from "./FavoriteButton";
+import WhatsAppButton from "./WhatsAppButton";
 
 type ListingDetail = {
   id: string;
@@ -54,6 +56,8 @@ export default async function ListingDetailPage({
     notFound();
   }
 
+  await supabase.rpc("increment_listing_view", { p_listing_id: id });
+
   const sortedImages = [...(listing.listing_images || [])]
     .sort((a, b) => a.sort_order - b.sort_order)
     .map((img) => img.image_url);
@@ -70,9 +74,12 @@ export default async function ListingDetailPage({
       <main className="mx-auto flex max-w-2xl flex-col gap-4 p-6">
         <ListingGallery images={sortedImages} title={listing.title} />
 
-        <h1 className="text-xl font-semibold" style={{ color: "var(--primary-dark)" }}>
-          {listing.title}
-        </h1>
+        <div className="flex items-start justify-between gap-2">
+          <h1 className="text-xl font-semibold" style={{ color: "var(--primary-dark)" }}>
+            {listing.title}
+          </h1>
+          <FavoriteButton listingId={listing.id} />
+        </div>
 
         <span className="text-lg font-bold" style={{ color: "var(--primary)" }}>
           {formatPrice(listing.price)}
@@ -119,14 +126,7 @@ export default async function ListingDetailPage({
         ) : null}
 
         {waLink ? (
-          <a
-            href={waLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-[var(--radius)] bg-green-600 px-4 py-3 text-center text-sm font-medium text-white"
-          >
-            Hubungi via WhatsApp
-          </a>
+          <WhatsAppButton listingId={listing.id} waLink={waLink} />
         ) : (
           <p className="text-center text-xs text-[var(--muted-foreground)]">
             Penjual belum menambahkan nomor WhatsApp
