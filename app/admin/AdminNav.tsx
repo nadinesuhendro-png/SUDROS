@@ -1,5 +1,5 @@
 // PATH: app/admin/AdminNav.tsx
-// AKSI: UPDATE FILE (tambah link Reports)
+// AKSI: UPDATE FILE (tambah link Packages)
 
 import Link from "next/link";
 
@@ -8,6 +8,7 @@ const navItems = [
   { href: "/admin/users", label: "Users" },
   { href: "/admin/listings", label: "Listings" },
   { href: "/admin/reports", label: "Reports" },
+  { href: "/admin/packages", label: "Packages" },
 ];
 
 export default function AdminNav() {
