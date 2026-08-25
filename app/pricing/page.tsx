@@ -1,8 +1,9 @@
 // PATH: app/pricing/page.tsx
-// AKSI: BUAT FILE BARU
+// AKSI: UPDATE FILE (tambah tombol Pilih Paket)
 
 import { Navbar } from "@/components/navbar";
 import { createClient } from "@/lib/supabase/server";
+import { createOrder } from "@/app/orders/actions";
 
 type PackageRow = {
   id: string;
@@ -82,6 +83,24 @@ export default async function PricingPage() {
                   <li>• Prioritas tampil di homepage</li>
                 ) : null}
               </ul>
+
+              {pkg.price > 0 ? (
+                <form action={createOrder} className="mt-2">
+                  <input type="hidden" name="package_id" value={pkg.id} />
+                  <input type="hidden" name="amount" value={pkg.price} />
+                  <button
+                    type="submit"
+                    className="w-full rounded-[var(--radius)] px-4 py-2 text-sm font-medium text-white"
+                    style={{ backgroundColor: "var(--primary)" }}
+                  >
+                    Pilih Paket
+                  </button>
+                </form>
+              ) : (
+                <div className="mt-2 rounded-[var(--radius)] border border-gray-300 px-4 py-2 text-center text-sm text-[var(--muted-foreground)]">
+                  Paket default kamu
+                </div>
+              )}
             </div>
           ))}
         </div>
