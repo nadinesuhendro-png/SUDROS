@@ -1,6 +1,7 @@
 // PATH: app/listings/[id]/page.tsx
-// AKSI: UPDATE FILE (tambah tombol WhatsApp)
+// AKSI: UPDATE FILE (tampilkan foto profil penjual)
 
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Navbar } from "@/components/navbar";
 import { createClient } from "@/lib/supabase/server";
@@ -16,7 +17,11 @@ type ListingDetail = {
   owner_id: string;
   listing_images: { image_url: string; sort_order: number }[];
   categories: { name: string } | null;
-  profiles: { username: string; whatsapp: string | null } | null;
+  profiles: {
+    username: string;
+    whatsapp: string | null;
+    avatar_url: string | null;
+  } | null;
 };
 
 function formatPrice(price: number) {
@@ -38,7 +43,7 @@ export default async function ListingDetailPage({
   const { data: listing } = await supabase
     .from("listings")
     .select(
-      "id, title, description, price, location_city, location_area, owner_id, listing_images(image_url, sort_order), categories(name), profiles(username, whatsapp)"
+      "id, title, description, price, location_city, location_area, owner_id, listing_images(image_url, sort_order), categories(name), profiles(username, whatsapp, avatar_url)"
     )
     .eq("id", id)
     .single<ListingDetail>();
@@ -90,7 +95,17 @@ export default async function ListingDetailPage({
         ) : null}
 
         {listing.profiles?.username ? (
-          <div className="mt-2 flex items-center justify-between rounded-[var(--radius)] border border-gray-200 p-3 text-sm">
+          <div className="mt-2 flex items-center gap-3 rounded-[var(--radius)] border border-gray-200 p-3 text-sm">
+            <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gray-100">
+              {listing.profiles.avatar_url ? (
+                <Image
+                  src={listing.profiles.avatar_url}
+                  alt={listing.profiles.username}
+                  fill
+                  className="object-cover"
+                />
+              ) : null}
+            </div>
             <span>
               Diposting oleh{" "}
               <span className="font-medium">{listing.profiles.username}</span>
@@ -115,4 +130,4 @@ export default async function ListingDetailPage({
       </main>
     </>
   );
-        }
+}
