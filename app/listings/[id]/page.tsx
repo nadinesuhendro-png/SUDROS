@@ -1,5 +1,5 @@
 // PATH: app/listings/[id]/page.tsx
-// AKSI: UPDATE FILE
+// AKSI: UPDATE FILE (tambah tombol WhatsApp)
 
 import { notFound } from "next/navigation";
 import { Navbar } from "@/components/navbar";
@@ -16,7 +16,7 @@ type ListingDetail = {
   owner_id: string;
   listing_images: { image_url: string; sort_order: number }[];
   categories: { name: string } | null;
-  profiles: { username: string } | null;
+  profiles: { username: string; whatsapp: string | null } | null;
 };
 
 function formatPrice(price: number) {
@@ -38,7 +38,7 @@ export default async function ListingDetailPage({
   const { data: listing } = await supabase
     .from("listings")
     .select(
-      "id, title, description, price, location_city, location_area, owner_id, listing_images(image_url, sort_order), categories(name), profiles(username)"
+      "id, title, description, price, location_city, location_area, owner_id, listing_images(image_url, sort_order), categories(name), profiles(username, whatsapp)"
     )
     .eq("id", id)
     .single<ListingDetail>();
@@ -50,6 +50,12 @@ export default async function ListingDetailPage({
   const sortedImages = [...(listing.listing_images || [])]
     .sort((a, b) => a.sort_order - b.sort_order)
     .map((img) => img.image_url);
+
+  const whatsapp = listing.profiles?.whatsapp;
+  const waMessage = encodeURIComponent(
+    `Halo, saya tertarik dengan listing "${listing.title}" di SUDROS.`
+  );
+  const waLink = whatsapp ? `https://wa.me/${whatsapp}?text=${waMessage}` : null;
 
   return (
     <>
@@ -84,11 +90,29 @@ export default async function ListingDetailPage({
         ) : null}
 
         {listing.profiles?.username ? (
-          <div className="mt-2 rounded-[var(--radius)] border border-gray-200 p-3 text-sm">
-            Diposting oleh <span className="font-medium">{listing.profiles.username}</span>
+          <div className="mt-2 flex items-center justify-between rounded-[var(--radius)] border border-gray-200 p-3 text-sm">
+            <span>
+              Diposting oleh{" "}
+              <span className="font-medium">{listing.profiles.username}</span>
+            </span>
           </div>
         ) : null}
+
+        {waLink ? (
+          <a
+            href={waLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-[var(--radius)] bg-green-600 px-4 py-3 text-center text-sm font-medium text-white"
+          >
+            Hubungi via WhatsApp
+          </a>
+        ) : (
+          <p className="text-center text-xs text-[var(--muted-foreground)]">
+            Penjual belum menambahkan nomor WhatsApp
+          </p>
+        )}
       </main>
     </>
   );
-}
+        }
