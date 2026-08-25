@@ -1,5 +1,5 @@
 // PATH: app/dashboard/profile/actions.ts
-// AKSI: BUAT FILE BARU
+// AKSI: UPDATE FILE (tambah avatar_url)
 
 "use server";
 
@@ -19,10 +19,14 @@ export async function updateProfile(formData: FormData) {
 
   const whatsappRaw = ((formData.get("whatsapp") as string) || "").trim();
   const whatsapp = whatsappRaw.replace(/[^0-9]/g, "");
+  const avatarUrl = ((formData.get("avatar_url") as string) || "").trim();
 
   const { error } = await supabase
     .from("profiles")
-    .update({ whatsapp: whatsapp || null })
+    .update({
+      whatsapp: whatsapp || null,
+      avatar_url: avatarUrl || null,
+    })
     .eq("id", user.id);
 
   if (error) {
@@ -32,4 +36,4 @@ export async function updateProfile(formData: FormData) {
   }
 
   redirect("/dashboard/profile?success=1");
-                                    }
+}
