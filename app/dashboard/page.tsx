@@ -1,5 +1,5 @@
 // PATH: app/dashboard/page.tsx
-// AKSI: UPDATE FILE (tambah logo & tagline)
+// AKSI: UPDATE FILE (hilangkan tulisan "Dashboard SUDROS")
 
 import Image from "next/image";
 import Link from "next/link";
@@ -45,10 +45,7 @@ export default async function DashboardPage() {
         Temukan. Tawarkan. Terhubung.
       </h2>
 
-      <h1 className="mt-2 text-lg font-semibold" style={{ color: "var(--primary-dark)" }}>
-        Dashboard SUDROS
-      </h1>
-      <p className="text-sm text-[var(--muted-foreground)]">{user.email}</p>
+      <p className="mt-2 text-sm text-[var(--muted-foreground)]">{user.email}</p>
       {profile ? (
         <div className="text-sm text-[var(--muted-foreground)]">
           <p>Username: {profile.username}</p>
@@ -89,4 +86,4 @@ export default async function DashboardPage() {
       </form>
     </main>
   );
-}
+          }
