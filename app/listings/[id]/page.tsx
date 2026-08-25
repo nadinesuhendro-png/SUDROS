@@ -1,5 +1,5 @@
 // PATH: app/listings/[id]/page.tsx
-// AKSI: UPDATE FILE (nama penjual jadi link ke profil publik)
+// AKSI: UPDATE FILE (tambah tombol Laporkan)
 
 import Image from "next/image";
 import Link from "next/link";
@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { Navbar } from "@/components/navbar";
 import { createClient } from "@/lib/supabase/server";
 import ListingGallery from "./ListingGallery";
+import ReportButton from "./ReportButton";
 
 type ListingDetail = {
   id: string;
@@ -131,7 +132,11 @@ export default async function ListingDetailPage({
             Penjual belum menambahkan nomor WhatsApp
           </p>
         )}
+
+        <div className="mt-2 flex justify-center">
+          <ReportButton listingId={listing.id} />
+        </div>
       </main>
     </>
   );
-          }
+}
