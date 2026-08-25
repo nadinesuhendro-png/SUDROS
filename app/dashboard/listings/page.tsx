@@ -1,5 +1,5 @@
 // PATH: app/dashboard/listings/page.tsx
-// AKSI: BUAT FILE BARU
+// AKSI: UPDATE FILE (tampilkan statistik views & WhatsApp clicks)
 
 import Image from "next/image";
 import Link from "next/link";
@@ -12,6 +12,8 @@ type MyListing = {
   title: string;
   price: number;
   location_city: string;
+  views_count: number;
+  whatsapp_clicks_count: number;
   listing_images: { image_url: string; sort_order: number }[];
 };
 
@@ -37,7 +39,7 @@ export default async function MyListingsPage() {
   const { data: listings } = await supabase
     .from("listings")
     .select(
-      "id, title, price, location_city, listing_images(image_url, sort_order)"
+      "id, title, price, location_city, views_count, whatsapp_clicks_count, listing_images(image_url, sort_order)"
     )
     .eq("owner_id", user.id)
     .order("created_at", { ascending: false })
@@ -100,6 +102,9 @@ export default async function MyListingsPage() {
                 </span>
                 <span className="text-xs text-[var(--muted-foreground)]">
                   {listing.location_city}
+                </span>
+                <span className="text-xs text-[var(--muted-foreground)]">
+                  👁 {listing.views_count} views • 💬 {listing.whatsapp_clicks_count} WA clicks
                 </span>
               </div>
 
