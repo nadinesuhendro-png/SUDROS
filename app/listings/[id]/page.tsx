@@ -1,7 +1,8 @@
 // PATH: app/listings/[id]/page.tsx
-// AKSI: UPDATE FILE (tampilkan foto profil penjual)
+// AKSI: UPDATE FILE (nama penjual jadi link ke profil publik)
 
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Navbar } from "@/components/navbar";
 import { createClient } from "@/lib/supabase/server";
@@ -95,7 +96,10 @@ export default async function ListingDetailPage({
         ) : null}
 
         {listing.profiles?.username ? (
-          <div className="mt-2 flex items-center gap-3 rounded-[var(--radius)] border border-gray-200 p-3 text-sm">
+          <Link
+            href={`/sellers/${listing.owner_id}`}
+            className="mt-2 flex items-center gap-3 rounded-[var(--radius)] border border-gray-200 p-3 text-sm"
+          >
             <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gray-100">
               {listing.profiles.avatar_url ? (
                 <Image
@@ -110,7 +114,7 @@ export default async function ListingDetailPage({
               Diposting oleh{" "}
               <span className="font-medium">{listing.profiles.username}</span>
             </span>
-          </div>
+          </Link>
         ) : null}
 
         {waLink ? (
@@ -130,4 +134,4 @@ export default async function ListingDetailPage({
       </main>
     </>
   );
-}
+          }
