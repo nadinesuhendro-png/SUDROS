@@ -1,10 +1,11 @@
 // PATH: app/dashboard/page.tsx
-// AKSI: GANTI SELURUH ISI FILE (tambah link Edit Profil)
+// AKSI: UPDATE FILE (tambah logo & tagline)
 
+import Image from "next/image";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/(auth)/actions";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 
 type Profile = {
   username: string;
@@ -29,7 +30,22 @@ export default async function DashboardPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
-      <h1 className="text-lg font-semibold" style={{ color: "var(--primary-dark)" }}>
+      <Image
+        src="/brand/sudros-logo.png"
+        alt="SUDROS"
+        width={220}
+        height={140}
+        priority
+        className="h-auto w-40"
+      />
+      <h2
+        className="text-lg font-semibold"
+        style={{ color: "var(--primary-dark)" }}
+      >
+        Temukan. Tawarkan. Terhubung.
+      </h2>
+
+      <h1 className="mt-2 text-lg font-semibold" style={{ color: "var(--primary-dark)" }}>
         Dashboard SUDROS
       </h1>
       <p className="text-sm text-[var(--muted-foreground)]">{user.email}</p>
@@ -73,4 +89,4 @@ export default async function DashboardPage() {
       </form>
     </main>
   );
-      }
+}
