@@ -1,5 +1,5 @@
 // PATH: app/dashboard/page.tsx
-// AKSI: GANTI SELURUH ISI FILE
+// AKSI: GANTI SELURUH ISI FILE (tambah link Edit Profil)
 
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/(auth)/actions";
@@ -55,6 +55,13 @@ export default async function DashboardPage() {
       >
         Listing Saya
       </Link>
+      <Link
+        href="/dashboard/profile"
+        className="rounded-[var(--radius)] px-4 py-2 text-sm font-medium text-white"
+        style={{ backgroundColor: "var(--primary)" }}
+      >
+        Edit Profil
+      </Link>
       <form action={logout}>
         <button
           type="submit"
@@ -66,4 +73,4 @@ export default async function DashboardPage() {
       </form>
     </main>
   );
-}
+      }
