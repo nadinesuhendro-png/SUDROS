@@ -1,7 +1,7 @@
 // PATH: lib/ai/gemini-provider.ts
-// AKSI: BUAT FILE BARU
+// AKSI: UPDATE FILE (ganti nama model yang deprecated)
 
-const GEMINI_MODEL = "gemini-2.0-flash";
+const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 export type GeminiResult = {
@@ -35,7 +35,7 @@ export async function callGemini(prompt: string, timeoutMs = 15000): Promise<Gem
 
     if (!response.ok) {
       const errText = await response.text();
-      throw new Error(`Gemini error ${response.status}: ${errText.slice(0, 200)}`);
+      throw new Error(`Gemini error ${response.status}: ${errText.slice(0, 300)}`);
     }
 
     const data = await response.json();
