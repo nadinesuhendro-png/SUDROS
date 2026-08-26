@@ -1,8 +1,8 @@
 // PATH: lib/ai/service.ts
-// AKSI: BUAT FILE BARU
+// AKSI: UPDATE FILE
 
 import { createClient } from "@/lib/supabase/server";
-import { callGemini } from "./gemini-provider";
+import { callGemini, GEMINI_MODEL } from "./gemini-provider";
 import crypto from "crypto";
 
 const RATE_LIMIT_PER_MINUTE = 5;
@@ -33,7 +33,6 @@ export async function runAITask<T>(
     return { ok: false, error: "Harus login untuk menggunakan fitur AI" };
   }
 
-  // Rate limiting: cek jumlah request task ini oleh user ini dalam 1 menit terakhir
   const oneMinuteAgo = new Date(Date.now() - 60000).toISOString();
   const { count: recentCount } = await supabase
     .from("ai_usage")
@@ -46,7 +45,6 @@ export async function runAITask<T>(
     return { ok: false, error: "Terlalu banyak permintaan AI. Coba lagi sebentar lagi." };
   }
 
-  // Cache check
   const cacheKey = hashInput(task, input);
   const { data: cached } = await supabase
     .from("ai_cache")
@@ -94,7 +92,7 @@ export async function runAITask<T>(
     await supabase.from("ai_usage").insert({
       user_id: user.id,
       task,
-      model: "gemini-2.0-flash",
+      model: GEMINI_MODEL,
       status: "error",
       latency_ms: latency,
       error_message: errorMessage.slice(0, 500),
@@ -102,4 +100,4 @@ export async function runAITask<T>(
 
     return { ok: false, error: "AI sedang tidak tersedia. Silakan coba lagi." };
   }
-        }
+}
