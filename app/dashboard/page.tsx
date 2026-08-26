@@ -1,5 +1,5 @@
 // PATH: app/dashboard/page.tsx
-// AKSI: UPDATE FILE (hilangkan tulisan "Dashboard SUDROS")
+// AKSI: UPDATE FILE (tambah link Riwayat Pembayaran + Notifikasi)
 
 import Image from "next/image";
 import Link from "next/link";
@@ -27,6 +27,12 @@ export default async function DashboardPage() {
     .select("username, role")
     .eq("id", user.id)
     .single<Profile>();
+
+  const { count: unreadCount } = await supabase
+    .from("notifications")
+    .select("*", { count: "exact", head: true })
+    .eq("recipient_user_id", user.id)
+    .eq("is_read", false);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
@@ -69,6 +75,25 @@ export default async function DashboardPage() {
         Listing Saya
       </Link>
       <Link
+        href="/dashboard/payments"
+        className="rounded-[var(--radius)] px-4 py-2 text-sm font-medium text-white"
+        style={{ backgroundColor: "var(--primary)" }}
+      >
+        Riwayat Pembayaran
+      </Link>
+      <Link
+        href="/notifications"
+        className="relative rounded-[var(--radius)] px-4 py-2 text-sm font-medium text-white"
+        style={{ backgroundColor: "var(--primary)" }}
+      >
+        Notifikasi
+        {unreadCount && unreadCount > 0 ? (
+          <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white">
+            {unreadCount}
+          </span>
+        ) : null}
+      </Link>
+      <Link
         href="/dashboard/profile"
         className="rounded-[var(--radius)] px-4 py-2 text-sm font-medium text-white"
         style={{ backgroundColor: "var(--primary)" }}
@@ -86,4 +111,4 @@ export default async function DashboardPage() {
       </form>
     </main>
   );
-          }
+}
