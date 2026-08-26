@@ -1,7 +1,7 @@
 // PATH: lib/ai/gemini-provider.ts
 // AKSI: UPDATE FILE (ganti nama model yang deprecated)
 
-const GEMINI_MODEL = "gemini-2.5-flash";
+export const GEMINI_MODEL = "gemini-flash-latest";
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 export type GeminiResult = {
