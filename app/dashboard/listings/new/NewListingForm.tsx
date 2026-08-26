@@ -1,11 +1,12 @@
 // PATH: app/dashboard/listings/new/NewListingForm.tsx
-// AKSI: BUAT FILE BARU
+// AKSI: UPDATE FILE (tambah tombol Bantu AI)
 
 "use client";
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { createListing } from "@/app/dashboard/listings/actions";
+import { generateListingContent } from "@/app/dashboard/listings/ai-actions";
 
 type Category = {
   id: string;
@@ -31,6 +32,49 @@ export default function NewListingForm({
   const [submitting, setSubmitting] = useState(false);
   const [statusText, setStatusText] = useState("");
   const [localError, setLocalError] = useState("");
+
+  const [titleValue, setTitleValue] = useState("");
+  const [descriptionValue, setDescriptionValue] = useState("");
+  const [priceValue, setPriceValue] = useState("");
+  const [categoryValue, setCategoryValue] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState<{
+    title: string;
+    description: string;
+  } | null>(null);
+  const [aiError, setAiError] = useState("");
+
+  async function handleAskAI() {
+    setAiLoading(true);
+    setAiError("");
+    setAiSuggestion(null);
+
+    const categoryName =
+      categories.find((c) => c.id === categoryValue)?.name || "";
+
+    const result = await generateListingContent({
+      title: titleValue,
+      description: descriptionValue,
+      categoryName,
+      price: Number(priceValue) || 0,
+    });
+
+    if (result.ok && result.data) {
+      setAiSuggestion(result.data);
+    } else {
+      setAiError(result.error || "Gagal mendapatkan saran AI");
+    }
+
+    setAiLoading(false);
+  }
+
+  function applyAiSuggestion() {
+    if (aiSuggestion) {
+      setTitleValue(aiSuggestion.title);
+      setDescriptionValue(aiSuggestion.description);
+      setAiSuggestion(null);
+    }
+  }
 
   async function handleSubmit(formEl: HTMLFormElement) {
     setSubmitting(true);
@@ -127,17 +171,65 @@ export default function NewListingForm({
           className="flex flex-col gap-4"
         >
           <div>
-            <label className={labelClassName} htmlFor="title">
-              Judul
-            </label>
+            <div className="mb-1 flex items-center justify-between">
+              <label className={labelClassName} htmlFor="title">
+                Judul
+              </label>
+              <button
+                type="button"
+                onClick={handleAskAI}
+                disabled={aiLoading}
+                className="text-xs font-medium disabled:opacity-60"
+                style={{ color: "var(--primary)" }}
+              >
+                {aiLoading ? "Memproses..." : "✨ Bantu AI"}
+              </button>
+            </div>
             <input
               id="title"
               name="title"
               type="text"
               required
+              value={titleValue}
+              onChange={(e) => setTitleValue(e.target.value)}
               className={inputClassName}
             />
           </div>
+
+          {aiError ? (
+            <p className="text-xs text-red-600">{aiError}</p>
+          ) : null}
+
+          {aiSuggestion ? (
+            <div className="flex flex-col gap-2 rounded-[var(--radius)] border border-blue-200 bg-blue-50 p-3 text-sm">
+              <p className="text-xs font-medium text-blue-700">
+                Saran AI (dibuat dengan bantuan AI)
+              </p>
+              <p>
+                <span className="font-medium">Judul:</span> {aiSuggestion.title}
+              </p>
+              <p>
+                <span className="font-medium">Deskripsi:</span>{" "}
+                {aiSuggestion.description}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={applyAiSuggestion}
+                  className="rounded-[var(--radius)] bg-blue-600 px-3 py-1 text-xs font-medium text-white"
+                >
+                  Gunakan
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAiSuggestion(null)}
+                  className="rounded-[var(--radius)] border border-gray-300 px-3 py-1 text-xs"
+                >
+                  Tolak
+                </button>
+              </div>
+            </div>
+          ) : null}
 
           <div>
             <label className={labelClassName} htmlFor="description">
@@ -147,6 +239,8 @@ export default function NewListingForm({
               id="description"
               name="description"
               rows={4}
+              value={descriptionValue}
+              onChange={(e) => setDescriptionValue(e.target.value)}
               className={inputClassName}
             />
           </div>
@@ -161,6 +255,8 @@ export default function NewListingForm({
               type="number"
               min="0"
               required
+              value={priceValue}
+              onChange={(e) => setPriceValue(e.target.value)}
               className={inputClassName}
             />
           </div>
@@ -173,6 +269,8 @@ export default function NewListingForm({
               id="category_id"
               name="category_id"
               required
+              value={categoryValue}
+              onChange={(e) => setCategoryValue(e.target.value)}
               className={inputClassName}
             >
               <option value="">Pilih kategori</option>
@@ -235,4 +333,4 @@ export default function NewListingForm({
       </div>
     </main>
   );
-}
+              }
