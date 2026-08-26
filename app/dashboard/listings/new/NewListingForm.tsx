@@ -333,4 +333,4 @@ export default function NewListingForm({
       </div>
     </main>
   );
-              }
+}
