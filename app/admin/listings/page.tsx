@@ -1,11 +1,12 @@
 // PATH: app/admin/listings/page.tsx
-// AKSI: BUAT FILE BARU
+// AKSI: UPDATE FILE (tambah ModerationButton)
 
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AdminNav from "../AdminNav";
 import { moderateListing } from "./actions";
+import ModerationButton from "./ModerationButton";
 
 type AdminListing = {
   id: string;
@@ -79,63 +80,67 @@ export default async function AdminListingsPage() {
           return (
             <div
               key={listing.id}
-              className="flex gap-3 rounded-[var(--radius)] border border-gray-200 p-3 text-sm"
+              className="flex flex-col gap-2 rounded-[var(--radius)] border border-gray-200 p-3 text-sm"
             >
-              <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-[var(--radius)] bg-gray-100">
-                {coverImage ? (
-                  <Image
-                    src={coverImage}
-                    alt={listing.title}
-                    fill
-                    className="object-cover"
-                  />
-                ) : null}
+              <div className="flex gap-3">
+                <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-[var(--radius)] bg-gray-100">
+                  {coverImage ? (
+                    <Image
+                      src={coverImage}
+                      alt={listing.title}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : null}
+                </div>
+
+                <div className="flex flex-1 flex-col gap-1">
+                  <span className="font-medium">{listing.title}</span>
+                  <span className="text-xs text-[var(--muted-foreground)]">
+                    {formatPrice(listing.price)} • {listing.location_city} •{" "}
+                    {listing.profiles?.username || "-"}
+                  </span>
+                  <span className="text-xs font-medium">
+                    Status: {statusLabel[listing.status] || listing.status}
+                  </span>
+                </div>
+
+                <form action={moderateListing} className="flex flex-col gap-1">
+                  <input type="hidden" name="id" value={listing.id} />
+                  {listing.status !== "active" ? (
+                    <button
+                      type="submit"
+                      name="status"
+                      value="active"
+                      className="rounded-[var(--radius)] border border-green-300 px-2 py-1 text-xs text-green-700"
+                    >
+                      Approve
+                    </button>
+                  ) : null}
+                  {listing.status !== "suspended" ? (
+                    <button
+                      type="submit"
+                      name="status"
+                      value="suspended"
+                      className="rounded-[var(--radius)] border border-yellow-300 px-2 py-1 text-xs text-yellow-700"
+                    >
+                      Suspend
+                    </button>
+                  ) : null}
+                  {listing.status !== "rejected" ? (
+                    <button
+                      type="submit"
+                      name="status"
+                      value="rejected"
+                      className="rounded-[var(--radius)] border border-red-300 px-2 py-1 text-xs text-red-700"
+                    >
+                      Reject
+                    </button>
+                  ) : null}
+                </form>
               </div>
 
-              <div className="flex flex-1 flex-col gap-1">
-                <span className="font-medium">{listing.title}</span>
-                <span className="text-xs text-[var(--muted-foreground)]">
-                  {formatPrice(listing.price)} • {listing.location_city} •{" "}
-                  {listing.profiles?.username || "-"}
-                </span>
-                <span className="text-xs font-medium">
-                  Status: {statusLabel[listing.status] || listing.status}
-                </span>
-              </div>
-
-              <form action={moderateListing} className="flex flex-col gap-1">
-                <input type="hidden" name="id" value={listing.id} />
-                {listing.status !== "active" ? (
-                  <button
-                    type="submit"
-                    name="status"
-                    value="active"
-                    className="rounded-[var(--radius)] border border-green-300 px-2 py-1 text-xs text-green-700"
-                  >
-                    Approve
-                  </button>
-                ) : null}
-                {listing.status !== "suspended" ? (
-                  <button
-                    type="submit"
-                    name="status"
-                    value="suspended"
-                    className="rounded-[var(--radius)] border border-yellow-300 px-2 py-1 text-xs text-yellow-700"
-                  >
-                    Suspend
-                  </button>
-                ) : null}
-                {listing.status !== "rejected" ? (
-                  <button
-                    type="submit"
-                    name="status"
-                    value="rejected"
-                    className="rounded-[var(--radius)] border border-red-300 px-2 py-1 text-xs text-red-700"
-                  >
-                    Reject
-                  </button>
-                ) : null}
-              </form>
+              <ModerationButton listingId={listing.id} />
             </div>
           );
         })}
