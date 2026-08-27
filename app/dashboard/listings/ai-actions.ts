@@ -1,7 +1,6 @@
-// PATH: app/dashboard/listings/ai-actions.ts
-// AKSI: UPDATE FILE (tambah generateMarketingCaption)
-
 "use server";
+
+export const maxDuration = 30;
 
 import { createClient } from "@/lib/supabase/server";
 import { runAITask } from "@/lib/ai/service";
