@@ -1,7 +1,6 @@
 // PATH: app/dashboard/profile/page.tsx
-// AKSI: UPDATE FILE (tambah foto profil)
+// AKSI: UPDATE FILE (auth check dipindah ke layout.tsx, jadi tidak dobel)
 
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import EditProfileForm from "./EditProfileForm";
 
@@ -23,14 +22,10 @@ export default async function EditProfilePage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect("/login");
-  }
-
   const { data: profile } = await supabase
     .from("profiles")
     .select("username, whatsapp, avatar_url")
-    .eq("id", user.id)
+    .eq("id", user!.id)
     .single<Profile>();
 
   return (
