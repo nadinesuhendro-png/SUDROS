@@ -1,11 +1,10 @@
 // PATH: app/dashboard/page.tsx
-// AKSI: UPDATE FILE (tambah link Riwayat Pembayaran + Notifikasi)
+// AKSI: UPDATE FILE (redesain jadi kartu, bottom nav & auth check dipindah ke layout.tsx)
 
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/(auth)/actions";
-import { redirect } from "next/navigation";
 
 type Profile = {
   username: string;
@@ -18,93 +17,100 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect("/login");
-  }
-
   const { data: profile } = await supabase
     .from("profiles")
     .select("username, role")
-    .eq("id", user.id)
+    .eq("id", user!.id)
     .single<Profile>();
 
-  const { count: unreadCount } = await supabase
-    .from("notifications")
+  const { count: listingCount } = await supabase
+    .from("listings")
     .select("*", { count: "exact", head: true })
-    .eq("recipient_user_id", user.id)
-    .eq("is_read", false);
+    .eq("owner_id", user!.id);
+
+  const { count: activeListingCount } = await supabase
+    .from("listings")
+    .select("*", { count: "exact", head: true })
+    .eq("owner_id", user!.id)
+    .eq("status", "active");
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
-      <Image
-        src="/brand/sudros-logo.png"
-        alt="SUDROS"
-        width={220}
-        height={140}
-        priority
-        className="h-auto w-40"
-      />
-      <h2
-        className="text-lg font-semibold"
-        style={{ color: "var(--primary-dark)" }}
-      >
-        Temukan. Tawarkan. Terhubung.
-      </h2>
-
-      <p className="mt-2 text-sm text-[var(--muted-foreground)]">{user.email}</p>
-      {profile ? (
-        <div className="text-sm text-[var(--muted-foreground)]">
-          <p>Username: {profile.username}</p>
-          <p>Role: {profile.role}</p>
+    <main className="mx-auto flex max-w-2xl flex-col gap-4 p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-[var(--muted-foreground)]">Halo,</p>
+          <h1
+            className="text-lg font-semibold"
+            style={{ color: "var(--primary-dark)" }}
+          >
+            {profile?.username || user?.email}
+          </h1>
         </div>
-      ) : (
-        <p className="text-sm text-red-500">Profil belum ditemukan</p>
-      )}
+        <Image
+          src="/brand/sudros-logo.png"
+          alt="SUDROS"
+          width={80}
+          height={50}
+          priority
+          className="h-auto w-16"
+        />
+      </div>
+
+      {/* Ringkasan singkat */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-[var(--radius)] border border-gray-200 p-4">
+          <p className="text-2xl font-bold" style={{ color: "var(--primary)" }}>
+            {listingCount || 0}
+          </p>
+          <p className="text-xs text-[var(--muted-foreground)]">Total Listing</p>
+        </div>
+        <div className="rounded-[var(--radius)] border border-gray-200 p-4">
+          <p className="text-2xl font-bold" style={{ color: "var(--primary)" }}>
+            {activeListingCount || 0}
+          </p>
+          <p className="text-xs text-[var(--muted-foreground)]">Listing Aktif</p>
+        </div>
+      </div>
+
+      {/* CTA utama */}
       <Link
         href="/dashboard/listings/new"
-        className="rounded-[var(--radius)] px-4 py-2 text-sm font-medium text-white"
+        className="flex items-center justify-center gap-2 rounded-[var(--radius)] py-4 text-sm font-semibold text-white"
         style={{ backgroundColor: "var(--primary)" }}
       >
-        Buat Listing Baru
+        + Buat Listing Baru
       </Link>
-      <Link
-        href="/dashboard/listings"
-        className="rounded-[var(--radius)] px-4 py-2 text-sm font-medium text-white"
-        style={{ backgroundColor: "var(--primary)" }}
-      >
-        Listing Saya
-      </Link>
-      <Link
-        href="/dashboard/payments"
-        className="rounded-[var(--radius)] px-4 py-2 text-sm font-medium text-white"
-        style={{ backgroundColor: "var(--primary)" }}
-      >
-        Riwayat Pembayaran
-      </Link>
-      <Link
-        href="/notifications"
-        className="relative rounded-[var(--radius)] px-4 py-2 text-sm font-medium text-white"
-        style={{ backgroundColor: "var(--primary)" }}
-      >
-        Notifikasi
-        {unreadCount && unreadCount > 0 ? (
-          <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white">
-            {unreadCount}
+
+      {/* Akses cepat */}
+      <div className="grid grid-cols-2 gap-3">
+        <Link
+          href="/dashboard/listings"
+          className="flex flex-col gap-1 rounded-[var(--radius)] border border-gray-200 p-4 text-sm font-medium"
+        >
+          📋 Listing Saya
+          <span className="text-xs font-normal text-[var(--muted-foreground)]">
+            Kelola listing kamu
           </span>
-        ) : null}
-      </Link>
-      <Link
-        href="/dashboard/profile"
-        className="rounded-[var(--radius)] px-4 py-2 text-sm font-medium text-white"
-        style={{ backgroundColor: "var(--primary)" }}
-      >
-        Edit Profil
-      </Link>
-      <form action={logout}>
+        </Link>
+        <Link
+          href="/dashboard/payments"
+          className="flex flex-col gap-1 rounded-[var(--radius)] border border-gray-200 p-4 text-sm font-medium"
+        >
+          💳 Riwayat Pembayaran
+          <span className="text-xs font-normal text-[var(--muted-foreground)]">
+            Cek status paket iklan
+          </span>
+        </Link>
+      </div>
+
+      <p className="text-center text-sm text-[var(--muted-foreground)]">
+        Temukan. Tawarkan. Terhubung.
+      </p>
+
+      <form action={logout} className="flex justify-center">
         <button
           type="submit"
-          className="rounded-[var(--radius)] px-4 py-2 text-sm font-medium text-white"
-          style={{ backgroundColor: "var(--primary)" }}
+          className="text-xs text-[var(--muted-foreground)] underline"
         >
           Keluar
         </button>
