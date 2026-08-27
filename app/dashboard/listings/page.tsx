@@ -1,12 +1,12 @@
 // PATH: app/dashboard/listings/page.tsx
-// AKSI: UPDATE FILE (tambah maxDuration untuk server action AI di halaman ini)
+// AKSI: UPDATE FILE (sembunyikan tombol Buat Caption Promosi sementara)
 
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { deleteListing } from "./actions";
-import CaptionButton from "./CaptionButton";
+// import CaptionButton from "./CaptionButton"; // TODO: aktifkan lagi setelah masalah Gemini 429/UNAVAILABLE selesai
 
 export const maxDuration = 60;
 
@@ -131,11 +131,11 @@ export default async function MyListingsPage() {
                 </div>
               </div>
 
-              <CaptionButton listingId={listing.id} />
+              {/* <CaptionButton listingId={listing.id} /> */}
             </div>
           );
         })}
       </div>
     </main>
   );
-}
+                  }
