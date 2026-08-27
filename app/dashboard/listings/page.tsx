@@ -1,5 +1,5 @@
 // PATH: app/dashboard/listings/page.tsx
-// AKSI: UPDATE FILE (tambah CaptionButton di kartu listing)
+// AKSI: UPDATE FILE (tambah maxDuration untuk server action AI di halaman ini)
 
 import Image from "next/image";
 import Link from "next/link";
@@ -7,6 +7,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { deleteListing } from "./actions";
 import CaptionButton from "./CaptionButton";
+
+export const maxDuration = 30;
 
 type MyListing = {
   id: string;
