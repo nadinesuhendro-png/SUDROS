@@ -1,11 +1,12 @@
 // PATH: app/dashboard/listings/page.tsx
-// AKSI: UPDATE FILE (tampilkan statistik views & WhatsApp clicks)
+// AKSI: UPDATE FILE (tambah CaptionButton di kartu listing)
 
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { deleteListing } from "./actions";
+import CaptionButton from "./CaptionButton";
 
 type MyListing = {
   id: string;
@@ -79,52 +80,56 @@ export default async function MyListingsPage() {
           return (
             <div
               key={listing.id}
-              className="flex gap-3 rounded-[var(--radius)] border border-gray-200 p-3"
+              className="flex flex-col gap-3 rounded-[var(--radius)] border border-gray-200 p-3"
             >
-              <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-[var(--radius)] bg-gray-100">
-                {coverImage ? (
-                  <Image
-                    src={coverImage}
-                    alt={listing.title}
-                    fill
-                    className="object-cover"
-                  />
-                ) : null}
-              </div>
+              <div className="flex gap-3">
+                <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-[var(--radius)] bg-gray-100">
+                  {coverImage ? (
+                    <Image
+                      src={coverImage}
+                      alt={listing.title}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : null}
+                </div>
 
-              <div className="flex flex-1 flex-col gap-1">
-                <span className="text-sm font-medium">{listing.title}</span>
-                <span
-                  className="text-sm font-semibold"
-                  style={{ color: "var(--primary)" }}
-                >
-                  {formatPrice(listing.price)}
-                </span>
-                <span className="text-xs text-[var(--muted-foreground)]">
-                  {listing.location_city}
-                </span>
-                <span className="text-xs text-[var(--muted-foreground)]">
-                  👁 {listing.views_count} views • 💬 {listing.whatsapp_clicks_count} WA clicks
-                </span>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Link
-                  href={`/dashboard/listings/${listing.id}/edit`}
-                  className="rounded-[var(--radius)] border border-gray-300 px-3 py-1 text-center text-xs font-medium"
-                >
-                  Edit
-                </Link>
-                <form action={deleteListing}>
-                  <input type="hidden" name="id" value={listing.id} />
-                  <button
-                    type="submit"
-                    className="w-full rounded-[var(--radius)] border border-red-300 px-3 py-1 text-xs font-medium text-red-600"
+                <div className="flex flex-1 flex-col gap-1">
+                  <span className="text-sm font-medium">{listing.title}</span>
+                  <span
+                    className="text-sm font-semibold"
+                    style={{ color: "var(--primary)" }}
                   >
-                    Hapus
-                  </button>
-                </form>
+                    {formatPrice(listing.price)}
+                  </span>
+                  <span className="text-xs text-[var(--muted-foreground)]">
+                    {listing.location_city}
+                  </span>
+                  <span className="text-xs text-[var(--muted-foreground)]">
+                    👁 {listing.views_count} views • 💬 {listing.whatsapp_clicks_count} WA clicks
+                  </span>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Link
+                    href={`/dashboard/listings/${listing.id}/edit`}
+                    className="rounded-[var(--radius)] border border-gray-300 px-3 py-1 text-center text-xs font-medium"
+                  >
+                    Edit
+                  </Link>
+                  <form action={deleteListing}>
+                    <input type="hidden" name="id" value={listing.id} />
+                    <button
+                      type="submit"
+                      className="w-full rounded-[var(--radius)] border border-red-300 px-3 py-1 text-xs font-medium text-red-600"
+                    >
+                      Hapus
+                    </button>
+                  </form>
+                </div>
               </div>
+
+              <CaptionButton listingId={listing.id} />
             </div>
           );
         })}
