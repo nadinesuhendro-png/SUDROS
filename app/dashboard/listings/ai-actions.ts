@@ -1,6 +1,7 @@
-"use server";
+// PATH: app/dashboard/listings/ai-actions.ts
+// AKSI: UPDATE FILE (hapus maxDuration, tidak boleh ada di file "use server")
 
-export const maxDuration = 30;
+"use server";
 
 import { createClient } from "@/lib/supabase/server";
 import { runAITask } from "@/lib/ai/service";
