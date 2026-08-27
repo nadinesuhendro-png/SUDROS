@@ -1,5 +1,5 @@
 // PATH: lib/ai/gemini-provider.ts
-// AKSI: UPDATE FILE (timeout diperpanjang jadi 25 detik, tanpa retry berlapis)
+// AKSI: UPDATE FILE (timeout diperpanjang jadi 25 detik)
 
 export const GEMINI_MODEL = "gemini-flash-latest";
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
