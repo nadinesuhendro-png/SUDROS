@@ -1,9 +1,7 @@
 // PATH: app/admin/packages/page.tsx
-// AKSI: BUAT FILE BARU
+// AKSI: UPDATE FILE (auth check & AdminNav dipindah ke layout.tsx, jadi tidak dobel)
 
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import AdminNav from "../AdminNav";
 import { togglePackageActive } from "./actions";
 
 type PackageRow = {
@@ -26,24 +24,6 @@ function formatPrice(price: number) {
 export default async function AdminPackagesPage() {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  const { data: myProfile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (!myProfile || myProfile.role !== "admin") {
-    redirect("/dashboard");
-  }
-
   const { data: packages } = await supabase
     .from("advertising_packages")
     .select("id, name, price, duration_days, max_active_listings, is_active")
@@ -51,47 +31,43 @@ export default async function AdminPackagesPage() {
     .returns<PackageRow[]>();
 
   return (
-    <main className="mx-auto flex max-w-4xl flex-col gap-4 p-6">
-      <h1 className="text-lg font-semibold" style={{ color: "var(--primary-dark)" }}>
-        Packages
-      </h1>
+    <div className="flex flex-col gap-2">
+      <h2 className="text-sm font-semibold text-[var(--muted-foreground)]">
+        Packages ({(packages || []).length})
+      </h2>
 
-      <AdminNav />
-
-      <div className="flex flex-col gap-2">
-        {(packages || []).map((pkg) => (
-          <div
-            key={pkg.id}
-            className="flex items-center justify-between rounded-[var(--radius)] border border-gray-200 p-3 text-sm"
-          >
-            <div>
-              <p className="font-medium">{pkg.name}</p>
-              <p className="text-xs text-[var(--muted-foreground)]">
-                {formatPrice(pkg.price)} / {pkg.duration_days} hari •{" "}
-                {pkg.max_active_listings} listing aktif
-              </p>
-            </div>
-            <form action={togglePackageActive}>
-              <input type="hidden" name="id" value={pkg.id} />
-              <input
-                type="hidden"
-                name="is_active"
-                value={(!pkg.is_active).toString()}
-              />
-              <button
-                type="submit"
-                className={`rounded-full px-3 py-1 text-xs font-medium ${
-                  pkg.is_active
-                    ? "bg-green-100 text-green-700"
-                    : "bg-gray-100 text-gray-700"
-                }`}
-              >
-                {pkg.is_active ? "Aktif" : "Nonaktif"}
-              </button>
-            </form>
+      {(packages || []).map((pkg) => (
+        <div
+          key={pkg.id}
+          className="flex items-center justify-between rounded-[var(--radius)] border border-gray-200 p-3 text-sm"
+        >
+          <div>
+            <p className="font-medium">{pkg.name}</p>
+            <p className="text-xs text-[var(--muted-foreground)]">
+              {formatPrice(pkg.price)} / {pkg.duration_days} hari •{" "}
+              {pkg.max_active_listings} listing aktif
+            </p>
           </div>
-        ))}
-      </div>
-    </main>
+          <form action={togglePackageActive}>
+            <input type="hidden" name="id" value={pkg.id} />
+            <input
+              type="hidden"
+              name="is_active"
+              value={(!pkg.is_active).toString()}
+            />
+            <button
+              type="submit"
+              className={`rounded-full px-3 py-1 text-xs font-medium ${
+                pkg.is_active
+                  ? "bg-green-100 text-green-700"
+                  : "bg-gray-100 text-gray-700"
+              }`}
+            >
+              {pkg.is_active ? "Aktif" : "Nonaktif"}
+            </button>
+          </form>
+        </div>
+      ))}
+    </div>
   );
 }
