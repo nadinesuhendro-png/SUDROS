@@ -1,30 +1,10 @@
 // PATH: app/admin/page.tsx
-// AKSI: BUAT FILE BARU
+// AKSI: UPDATE FILE (auth check & AdminNav dipindah ke layout.tsx, jadi tidak dobel)
 
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import AdminNav from "./AdminNav";
 
 export default async function AdminOverviewPage() {
   const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile || profile.role !== "admin") {
-    redirect("/dashboard");
-  }
 
   const [
     { count: totalUsers },
@@ -64,29 +44,18 @@ export default async function AdminOverviewPage() {
   ];
 
   return (
-    <main className="mx-auto flex max-w-4xl flex-col gap-4 p-6">
-      <h1
-        className="text-lg font-semibold"
-        style={{ color: "var(--primary-dark)" }}
-      >
-        Admin Overview
-      </h1>
-
-      <AdminNav />
-
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="rounded-[var(--radius)] border border-gray-200 p-4"
-          >
-            <p className="text-2xl font-bold" style={{ color: "var(--primary)" }}>
-              {stat.value}
-            </p>
-            <p className="text-xs text-[var(--muted-foreground)]">{stat.label}</p>
-          </div>
-        ))}
-      </div>
-    </main>
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      {stats.map((stat) => (
+        <div
+          key={stat.label}
+          className="rounded-[var(--radius)] border border-gray-200 p-4"
+        >
+          <p className="text-2xl font-bold" style={{ color: "var(--primary)" }}>
+            {stat.value}
+          </p>
+          <p className="text-xs text-[var(--muted-foreground)]">{stat.label}</p>
+        </div>
+      ))}
+    </div>
   );
 }
