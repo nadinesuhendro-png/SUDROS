@@ -1,9 +1,7 @@
 // PATH: app/admin/ai-usage/page.tsx
-// AKSI: BUAT FILE BARU
+// AKSI: UPDATE FILE (auth check & AdminNav dipindah ke layout.tsx, jadi tidak dobel)
 
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import AdminNav from "../AdminNav";
 
 type UsageRow = {
   task: string;
@@ -32,24 +30,6 @@ function formatTaskLabel(task: string) {
 
 export default async function AdminAIUsagePage() {
   const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  const { data: myProfile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (!myProfile || myProfile.role !== "admin") {
-    redirect("/dashboard");
-  }
 
   const todayStart = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
 
@@ -111,16 +91,7 @@ export default async function AdminAIUsagePage() {
   ];
 
   return (
-    <main className="mx-auto flex max-w-4xl flex-col gap-4 p-6">
-      <h1
-        className="text-lg font-semibold"
-        style={{ color: "var(--primary-dark)" }}
-      >
-        AI Usage
-      </h1>
-
-      <AdminNav />
-
+    <div className="flex flex-col gap-4">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {overallStats.map((stat) => (
           <div
@@ -194,6 +165,6 @@ export default async function AdminAIUsagePage() {
           ))}
         </div>
       </div>
-    </main>
+    </div>
   );
-      }
+}
