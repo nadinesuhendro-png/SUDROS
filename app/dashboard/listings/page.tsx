@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { deleteListing } from "./actions";
 import CaptionButton from "./CaptionButton";
 
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 type MyListing = {
   id: string;
