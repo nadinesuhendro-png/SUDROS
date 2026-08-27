@@ -1,5 +1,5 @@
 // PATH: lib/ai/gemini-provider.ts
-// AKSI: UPDATE FILE (timeout diperpanjang jadi 25 detik)
+// AKSI: UPDATE FILE (matikan thinking mode & naikkan maxOutputTokens)
 
 export const GEMINI_MODEL = "gemini-flash-latest";
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
@@ -29,8 +29,11 @@ export async function callGemini(
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-          maxOutputTokens: 500,
+          maxOutputTokens: 1024,
           temperature: 0.7,
+          thinkingConfig: {
+            thinkingBudget: 0,
+          },
         },
       }),
       signal: controller.signal,
@@ -45,7 +48,10 @@ export async function callGemini(
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!text) {
-      throw new Error("Gemini tidak mengembalikan hasil");
+      const finishReason = data?.candidates?.[0]?.finishReason;
+      throw new Error(
+        `Gemini tidak mengembalikan hasil (finishReason: ${finishReason || "unknown"})`
+      );
     }
 
     return { text: text.trim(), model: GEMINI_MODEL };
