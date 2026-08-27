@@ -1,11 +1,11 @@
 // PATH: lib/ai/gemini-provider.ts
-// AKSI: UPDATE FILE (retry otomatis saat model overload/503)
+// AKSI: UPDATE FILE (perpendek timeout & retry agar tidak melebihi batas Vercel)
 
 export const GEMINI_MODEL = "gemini-flash-latest";
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
-const MAX_RETRIES = 2;
-const RETRY_DELAY_MS = 1500;
+const MAX_RETRIES = 1;
+const RETRY_DELAY_MS = 800;
 
 export type GeminiResult = {
   text: string;
@@ -17,7 +17,6 @@ function sleep(ms: number) {
 }
 
 function isRetryableStatus(status: number) {
-  // 503 = model overloaded, 429 = rate limited di sisi Google
   return status === 503 || status === 429;
 }
 
@@ -67,7 +66,7 @@ async function callGeminiOnce(
 
 export async function callGemini(
   prompt: string,
-  timeoutMs = 15000
+  timeoutMs = 9000
 ): Promise<GeminiResult> {
   const apiKey = process.env.GEMINI_API_KEY;
 
@@ -89,8 +88,7 @@ export async function callGemini(
         throw err;
       }
 
-      // Exponential backoff sederhana: 1.5s, lalu 3s
-      await sleep(RETRY_DELAY_MS * (attempt + 1));
+      await sleep(RETRY_DELAY_MS);
     }
   }
 
