@@ -1,9 +1,8 @@
 // PATH: app/dashboard/listings/page.tsx
-// AKSI: UPDATE FILE (sembunyikan tombol Buat Caption Promosi sementara)
+// AKSI: UPDATE FILE (auth check dipindah ke layout.tsx, jadi tidak dobel)
 
 import Image from "next/image";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { deleteListing } from "./actions";
 // import CaptionButton from "./CaptionButton"; // TODO: aktifkan lagi setelah masalah Gemini 429/UNAVAILABLE selesai
@@ -35,16 +34,12 @@ export default async function MyListingsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect("/login");
-  }
-
   const { data: listings } = await supabase
     .from("listings")
     .select(
       "id, title, price, location_city, views_count, whatsapp_clicks_count, listing_images(image_url, sort_order)"
     )
-    .eq("owner_id", user.id)
+    .eq("owner_id", user!.id)
     .order("created_at", { ascending: false })
     .returns<MyListing[]>();
 
@@ -138,4 +133,4 @@ export default async function MyListingsPage() {
       </div>
     </main>
   );
-                  }
+}
