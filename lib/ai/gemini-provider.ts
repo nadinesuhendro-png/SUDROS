@@ -1,5 +1,5 @@
 // PATH: lib/ai/gemini-provider.ts
-// AKSI: UPDATE FILE (perpendek timeout & retry agar tidak melebihi batas Vercel)
+// AKSI: UPDATE FILE (timeout diperpanjang, timeout/abort ikut di-retry)
 
 export const GEMINI_MODEL = "gemini-flash-latest";
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
@@ -16,8 +16,21 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function isRetryableStatus(status: number) {
-  return status === 503 || status === 429;
+function isRetryable(err: unknown) {
+  const status = (err as Error & { status?: number })?.status;
+  if (status === 503 || status === 429) return true;
+
+  // Timeout dari AbortController kita sendiri, atau kegagalan jaringan
+  const name = (err as Error)?.name;
+  const message = (err as Error)?.message || "";
+  if (name === "AbortError" || message.toLowerCase().includes("abort")) {
+    return true;
+  }
+  if (message.toLowerCase().includes("fetch failed")) {
+    return true;
+  }
+
+  return false;
 }
 
 async function callGeminiOnce(
@@ -66,7 +79,7 @@ async function callGeminiOnce(
 
 export async function callGemini(
   prompt: string,
-  timeoutMs = 9000
+  timeoutMs = 13000
 ): Promise<GeminiResult> {
   const apiKey = process.env.GEMINI_API_KEY;
 
@@ -81,10 +94,9 @@ export async function callGemini(
       return await callGeminiOnce(prompt, apiKey, timeoutMs);
     } catch (err) {
       lastError = err;
-      const status = (err as Error & { status?: number })?.status;
       const isLastAttempt = attempt === MAX_RETRIES;
 
-      if (!isRetryableStatus(status || 0) || isLastAttempt) {
+      if (!isRetryable(err) || isLastAttempt) {
         throw err;
       }
 
