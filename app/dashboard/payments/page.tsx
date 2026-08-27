@@ -1,7 +1,6 @@
 // PATH: app/dashboard/payments/page.tsx
-// AKSI: BUAT FILE BARU
+// AKSI: UPDATE FILE (auth check dipindah ke layout.tsx, jadi tidak dobel)
 
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 type OrderRow = {
@@ -53,23 +52,19 @@ export default async function PaymentHistoryPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect("/login");
-  }
-
   const { data: orders } = await supabase
     .from("advertising_orders")
     .select(
       "id, order_number, amount, payment_status, paid_at, expires_at, created_at, advertising_packages(name)"
     )
-    .eq("user_id", user.id)
+    .eq("user_id", user!.id)
     .order("created_at", { ascending: false })
     .returns<OrderRow[]>();
 
   const { data: activePackage } = await supabase
     .from("user_active_packages")
     .select("expires_at, advertising_packages(name)")
-    .eq("user_id", user.id)
+    .eq("user_id", user!.id)
     .eq("is_active", true)
     .gte("expires_at", new Date().toISOString())
     .order("expires_at", { ascending: false })
@@ -135,4 +130,4 @@ export default async function PaymentHistoryPage() {
       </div>
     </main>
   );
-    }
+}
