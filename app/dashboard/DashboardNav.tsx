@@ -1,50 +1,59 @@
 // PATH: app/dashboard/DashboardNav.tsx
-// AKSI: BUAT FILE BARU (bottom nav untuk dashboard user, konsisten dengan pola AdminNav)
+// AKSI: UPDATE FILE (link Favorit & Notifikasi diarahkan ke /dashboard/favorites & /dashboard/notifications)
 
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Home, ClipboardList, Heart, Bell, User } from "lucide-react";
 
-const navItems = [
-  { href: "/dashboard", label: "Beranda", icon: "🏠" },
-  { href: "/dashboard/listings", label: "Listing", icon: "📋" },
-  { href: "/favorites", label: "Favorit", icon: "❤️" },
-  { href: "/notifications", label: "Notifikasi", icon: "🔔" },
-  { href: "/dashboard/profile", label: "Profil", icon: "👤" },
+type NavItem = {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+};
+
+const navItems: NavItem[] = [
+  { href: "/dashboard", label: "Beranda", icon: Home },
+  { href: "/dashboard/listings", label: "Listing", icon: ClipboardList },
+  { href: "/dashboard/favorites", label: "Favorit", icon: Heart },
+  { href: "/dashboard/notifications", label: "Notifikasi", icon: Bell },
+  { href: "/dashboard/profile", label: "Profil", icon: User },
 ];
 
-export default function DashboardNav({ unreadCount }: { unreadCount: number }) {
+export default function DashboardNav({
+  unreadCount = 0,
+}: {
+  unreadCount?: number;
+}) {
   const pathname = usePathname();
 
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 z-50 border-t bg-white"
-      style={{ borderColor: "var(--border, #e5e7eb)" }}
-    >
-      <div className="mx-auto flex max-w-2xl items-center justify-around">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white">
+      <div className="mx-auto flex max-w-2xl items-center justify-around px-2 py-2">
         {navItems.map((item) => {
           const isActive =
             item.href === "/dashboard"
               ? pathname === "/dashboard"
-              : pathname?.startsWith(item.href);
+              : pathname.startsWith(item.href);
+          const Icon = item.icon;
 
           return (
             <Link
               key={item.href}
               href={item.href}
-              className="relative flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium"
+              className="relative flex flex-col items-center gap-1 px-2 py-1 text-xs"
               style={{
                 color: isActive ? "var(--primary)" : "var(--muted-foreground)",
               }}
             >
-              <span className="text-lg leading-none">{item.icon}</span>
-              {item.label}
-              {item.href === "/notifications" && unreadCount > 0 ? (
-                <span className="absolute right-3 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[9px] text-white">
-                  {unreadCount}
+              <Icon className="h-5 w-5" />
+              {item.href === "/dashboard/notifications" && unreadCount > 0 ? (
+                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
+                  {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               ) : null}
+              <span>{item.label}</span>
             </Link>
           );
         })}
