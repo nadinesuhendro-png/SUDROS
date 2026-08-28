@@ -1,5 +1,5 @@
 // PATH: lib/agents/orchestrator.ts
-// AKSI: UPDATE FILE (aktifkan Marketing Agent — Fase 8)
+// AKSI: UPDATE FILE (aktifkan Analytics Agent — Fase 9, SEMUA AGENT LENGKAP)
 
 import { runModerationAgent } from "./moderation-agent";
 import { runAdminDigestAgent } from "./admin-digest-agent";
@@ -9,6 +9,7 @@ import { runSecurityAgent } from "./security-agent";
 import { runListingQualityAgent } from "./listing-quality-agent";
 import { runMonetizationAgent } from "./monetization-agent";
 import { runMarketingAgent } from "./marketing-agent";
+import { runAnalyticsAgent } from "./analytics-agent";
 
 export async function runAllAgents() {
   const results: Record<string, unknown> = {};
@@ -21,9 +22,7 @@ export async function runAllAgents() {
   results.listing_quality = await runListingQualityAgent();
   results.monetization = await runMonetizationAgent();
   results.marketing = await runMarketingAgent();
-
-  // Agent selanjutnya ditambahkan di sini nanti:
-  // results.analytics = await runAnalyticsAgent();
+  results.analytics = await runAnalyticsAgent();
 
   return results;
 }
