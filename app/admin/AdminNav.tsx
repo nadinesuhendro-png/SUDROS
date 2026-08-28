@@ -1,5 +1,5 @@
 // PATH: app/admin/AdminNav.tsx
-// AKSI: UPDATE FILE (tambah highlight untuk menu yang sedang aktif)
+// AKSI: UPDATE FILE (nav dibuat sticky supaya tetap terlihat saat scroll ke bawah)
 
 "use client";
 
@@ -14,13 +14,14 @@ const navItems = [
   { href: "/admin/packages", label: "Packages" },
   { href: "/admin/payments", label: "Payments" },
   { href: "/admin/ai-usage", label: "AI Usage" },
+  { href: "/admin/agents", label: "Agents" },
 ];
 
 export default function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-3">
+    <div className="sticky top-0 z-40 flex flex-wrap gap-2 border-b border-gray-200 bg-white pb-3 pt-2">
       {navItems.map((item) => {
         const isActive =
           item.href === "/admin"
