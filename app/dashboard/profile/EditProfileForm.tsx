@@ -1,5 +1,5 @@
 // PATH: app/dashboard/profile/EditProfileForm.tsx
-// AKSI: BUAT FILE BARU
+// AKSI: UPDATE FILE (ganti <main> jadi <div> agar tidak dobel wrapper)
 
 "use client";
 
@@ -90,7 +90,7 @@ export default function EditProfileForm({
   }
 
   return (
-    <main className="mx-auto flex max-w-md flex-col gap-4 p-6">
+    <div className="mx-auto flex max-w-md flex-col gap-4 p-6">
       <h1
         className="text-lg font-semibold text-center"
         style={{ color: "var(--primary-dark)" }}
@@ -178,6 +178,6 @@ export default function EditProfileForm({
       >
         Kembali ke Dashboard
       </Link>
-    </main>
+    </div>
   );
 }
