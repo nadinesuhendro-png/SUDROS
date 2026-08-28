@@ -1,10 +1,12 @@
 // PATH: app/dashboard/listings/actions.ts
-// AKSI: UPDATE FILE (gabungan lengkap, tambah deleteListing)
+// AKSI: UPDATE FILE (trigger Moderation Agent otomatis setelah listing baru dibuat, jalan di background)
 
 "use server";
 
+import { after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { runModerationAgentForListing } from "@/lib/agents/moderation-agent";
 
 type CreateListingInput = {
   id: string;
@@ -87,6 +89,9 @@ export async function createListing(input: CreateListingInput) {
 
     await supabase.from("listing_images").insert(rows);
   }
+
+  // Trigger Moderation Agent di background — tidak menunda redirect ke user
+  after(() => runModerationAgentForListing(listing.id));
 
   redirect("/dashboard");
 }
@@ -237,4 +242,4 @@ export async function deleteListingImage(formData: FormData) {
   await supabase.from("listing_images").delete().eq("id", imageId);
 
   redirect(`/dashboard/listings/${listingId}/edit`);
-        }
+}
