@@ -1,7 +1,8 @@
 // PATH: lib/ai/service.ts
-// AKSI: UPDATE FILE
+// AKSI: UPDATE FILE (ai_cache read/write pindah ke admin client karena akses client biasa sudah dicabut lewat RLS)
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { callGemini, GEMINI_MODEL } from "./gemini-provider";
 import crypto from "crypto";
 
@@ -24,6 +25,7 @@ export async function runAITask<T>(
   prompt: string
 ): Promise<AIRunResult<T>> {
   const supabase = await createClient();
+  const supabaseAdmin = createAdminClient();
 
   const {
     data: { user },
@@ -46,7 +48,7 @@ export async function runAITask<T>(
   }
 
   const cacheKey = hashInput(task, input);
-  const { data: cached } = await supabase
+  const { data: cached } = await supabaseAdmin
     .from("ai_cache")
     .select("output, expires_at")
     .eq("cache_key", cacheKey)
@@ -78,7 +80,7 @@ export async function runAITask<T>(
       latency_ms: latency,
     });
 
-    await supabase.from("ai_cache").upsert({
+    await supabaseAdmin.from("ai_cache").upsert({
       cache_key: cacheKey,
       task,
       output: parsed,
