@@ -1,5 +1,5 @@
 // PATH: app/dashboard/listings/page.tsx
-// AKSI: UPDATE FILE (auth check dipindah ke layout.tsx, jadi tidak dobel)
+// AKSI: UPDATE FILE (tambah badge "Sedang dalam peninjauan" berdasarkan status & ai_moderation_checked_at)
 
 import Image from "next/image";
 import Link from "next/link";
@@ -16,6 +16,8 @@ type MyListing = {
   location_city: string;
   views_count: number;
   whatsapp_clicks_count: number;
+  status: string;
+  ai_moderation_checked_at: string | null;
   listing_images: { image_url: string; sort_order: number }[];
 };
 
@@ -25,6 +27,42 @@ function formatPrice(price: number) {
     currency: "IDR",
     maximumFractionDigits: 0,
   }).format(price);
+}
+
+function ReviewBadge({ listing }: { listing: MyListing }) {
+  // Ditolak/suspend: admin sudah manual review, tampilkan status apa adanya
+  if (listing.status === "rejected") {
+    return (
+      <span className="inline-flex w-fit items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+        Ditolak
+      </span>
+    );
+  }
+  if (listing.status === "suspended") {
+    return (
+      <span className="inline-flex w-fit items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+        Ditangguhkan
+      </span>
+    );
+  }
+  // Belum sempat dicek AI (baru dibuat / Gemini gagal) ATAU masih berstatus pending
+  if (!listing.ai_moderation_checked_at || listing.status === "pending") {
+    return (
+      <span className="inline-flex w-fit items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+        Sedang dalam peninjauan
+      </span>
+    );
+  }
+  // Sudah dicek dan aktif
+  if (listing.status === "active") {
+    return (
+      <span className="inline-flex w-fit items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+        Aktif
+      </span>
+    );
+  }
+  return null;
 }
 
 export default async function MyListingsPage() {
@@ -37,7 +75,7 @@ export default async function MyListingsPage() {
   const { data: listings } = await supabase
     .from("listings")
     .select(
-      "id, title, price, location_city, views_count, whatsapp_clicks_count, listing_images(image_url, sort_order)"
+      "id, title, price, location_city, views_count, whatsapp_clicks_count, status, ai_moderation_checked_at, listing_images(image_url, sort_order)"
     )
     .eq("owner_id", user!.id)
     .order("created_at", { ascending: false })
@@ -105,6 +143,7 @@ export default async function MyListingsPage() {
                   <span className="text-xs text-[var(--muted-foreground)]">
                     👁 {listing.views_count} views • 💬 {listing.whatsapp_clicks_count} WA clicks
                   </span>
+                  <ReviewBadge listing={listing} />
                 </div>
 
                 <div className="flex flex-col gap-2">
