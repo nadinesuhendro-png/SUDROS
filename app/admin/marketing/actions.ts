@@ -258,4 +258,4 @@ export async function markPublished(formData: FormData) {
   await supabase.from("marketing_contents").update({ status: "published" }).eq("id", id);
 
   redirect(`/admin/marketing/content/${id}`);
-    }
+}
