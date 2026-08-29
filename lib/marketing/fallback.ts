@@ -1,5 +1,5 @@
 // PATH: lib/marketing/fallback.ts
-// AKSI: BUAT FILE BARU (fallback engine deterministic — tidak pernah gagal, tidak butuh AI sama sekali)
+// AKSI: UPDATE FILE (tambah generatePlatformFallbackContent — promosi SUDROS sebagai platform, bukan listing tertentu)
 
 export type MarketingListingFacts = {
   title: string;
@@ -110,3 +110,59 @@ export function generateFallbackContent(
 
   return base;
 }
+
+// ===== PROMOSI PLATFORM SUDROS (bukan listing tertentu) =====
+
+const PLATFORM_TAGLINE = "Temukan. Tawarkan. Terhubung.";
+const PLATFORM_DESC =
+  "SUDROS adalah platform listing jual-beli lokal Indonesia — tempat mencari dan menawarkan barang/jasa di sekitarmu, terhubung langsung lewat WhatsApp tanpa ribet.";
+
+export function generatePlatformFallbackContent(
+  siteUrl: string,
+  platform: "instagram" | "facebook" | "tiktok" | "whatsapp" | "general"
+): MarketingContentOutput {
+  const base: MarketingContentOutput = {
+    headline: "",
+    hook: "",
+    caption: "",
+    short_copy: "",
+    video_script: "",
+    cta: "Daftar dan mulai jual-beli di SUDROS sekarang.",
+    hashtags: [],
+  };
+
+  const hashtags = ["sudros", "jualbelilokal", "platformlokal", "temukantawarkanterhubung"];
+
+  switch (platform) {
+    case "instagram": {
+      base.headline = `SUDROS — ${PLATFORM_TAGLINE}`;
+      base.caption = `📣 ${PLATFORM_TAGLINE}\n\n${PLATFORM_DESC}\n\n${base.cta}`;
+      base.hashtags = hashtags;
+      break;
+    }
+    case "facebook": {
+      base.headline = `SUDROS — ${PLATFORM_TAGLINE}`;
+      base.caption = `${PLATFORM_DESC}\n\n${base.cta}`;
+      break;
+    }
+    case "tiktok": {
+      base.hook = "Butuh platform jual-beli lokal yang gampang dipakai?";
+      base.video_script = `${PLATFORM_DESC}\n\n${base.cta}`;
+      base.caption = `SUDROS — ${PLATFORM_TAGLINE}`;
+      base.hashtags = hashtags;
+      break;
+    }
+    case "whatsapp": {
+      base.short_copy = `Halo! Kenalin SUDROS 👋\n\n${PLATFORM_DESC}\n\n${base.cta}\n${siteUrl}`;
+      break;
+    }
+    case "general":
+    default: {
+      base.headline = `SUDROS — ${PLATFORM_TAGLINE}`;
+      base.caption = `${PLATFORM_DESC}\n\n${base.cta}`;
+      break;
+    }
+  }
+
+  return base;
+        }
