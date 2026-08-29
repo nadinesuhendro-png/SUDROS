@@ -1,10 +1,11 @@
 // PATH: lib/agents/monetization-agent.ts
-// AKSI: BUAT FILE BARU (Agent Fase 7 — reminder paket akan expired & order stuck pending, cron-only)
+// AKSI: UPDATE FILE (tambah peringatan paket SUDAH expired, diulang tiap hari selama grace period 3 hari — reminder H-3 sebelum expired tetap dipertahankan)
 
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const AGENT_NAME = "monetization";
 const EXPIRY_REMINDER_DAYS = 3;
+const EXPIRED_GRACE_DAYS = 3;
 const STUCK_ORDER_HOURS = 24;
 
 export async function runMonetizationAgent() {
@@ -24,9 +25,11 @@ export async function runMonetizationAgent() {
 
   try {
     let expiryReminders = 0;
+    let expiredWarnings = 0;
     let stuckOrderAlerts = 0;
 
     const now = new Date();
+
     const reminderWindowEnd = new Date(
       now.getTime() + EXPIRY_REMINDER_DAYS * 24 * 60 * 60 * 1000
     ).toISOString();
@@ -54,6 +57,38 @@ export async function runMonetizationAgent() {
       });
 
       expiryReminders += 1;
+    }
+
+    const graceWindowStart = new Date(
+      now.getTime() - EXPIRED_GRACE_DAYS * 24 * 60 * 60 * 1000
+    ).toISOString();
+
+    const { data: expiredPackages } = await supabase
+      .from("user_active_packages")
+      .select("id, user_id, expires_at, advertising_packages(name)")
+      .lt("expires_at", now.toISOString())
+      .gte("expires_at", graceWindowStart);
+
+    for (const pkg of expiredPackages || []) {
+      const packageName =
+        (pkg.advertising_packages as unknown as { name: string } | null)
+          ?.name || "Paket";
+      const daysAgo = Math.max(
+        1,
+        Math.ceil(
+          (now.getTime() - new Date(pkg.expires_at).getTime()) /
+            (24 * 60 * 60 * 1000)
+        )
+      );
+
+      await supabase.from("notifications").insert({
+        recipient_user_id: pkg.user_id,
+        title: "Paket Kamu Sudah Habis",
+        message: `Paket "${packageName}" kamu sudah habis sejak ${daysAgo} hari lalu. Segera perpanjang supaya listing kamu tidak kehilangan promosi.`,
+        link: "/pricing",
+      });
+
+      expiredWarnings += 1;
     }
 
     const stuckThreshold = new Date(
@@ -86,7 +121,7 @@ export async function runMonetizationAgent() {
       stuckOrderAlerts = stuckOrders.length;
     }
 
-    const summary = { expiryReminders, stuckOrderAlerts };
+    const summary = { expiryReminders, expiredWarnings, stuckOrderAlerts };
     const latency = Date.now() - startTime;
 
     if (taskRow) {
