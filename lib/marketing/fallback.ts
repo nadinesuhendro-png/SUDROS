@@ -1,5 +1,5 @@
 // PATH: lib/marketing/fallback.ts
-// AKSI: UPDATE FILE (tambah generatePlatformFallbackContent — promosi SUDROS sebagai platform, bukan listing tertentu)
+// AKSI: BUAT FILE BARU (fallback engine deterministic — tidak pernah gagal, tidak butuh AI sama sekali)
 
 export type MarketingListingFacts = {
   title: string;
@@ -115,7 +115,7 @@ export function generateFallbackContent(
 
 const PLATFORM_TAGLINE = "Temukan. Tawarkan. Terhubung.";
 const PLATFORM_DESC =
-  "SUDROS adalah platform listing jual-beli lokal Indonesia — tempat mencari dan menawarkan barang/jasa di sekitarmu, terhubung langsung lewat WhatsApp tanpa ribet.";
+  "SUDROS adalah platform listing jual-beli lokal Indonesia, tempat mencari dan menawarkan barang/jasa di sekitarmu, terhubung langsung lewat WhatsApp tanpa ribet.";
 
 export function generatePlatformFallbackContent(
   siteUrl: string,
@@ -135,34 +135,35 @@ export function generatePlatformFallbackContent(
 
   switch (platform) {
     case "instagram": {
-      base.headline = `SUDROS — ${PLATFORM_TAGLINE}`;
-      base.caption = `📣 ${PLATFORM_TAGLINE}\n\n${PLATFORM_DESC}\n\n${base.cta}`;
+      base.headline = "SUDROS - " + PLATFORM_TAGLINE;
+      base.caption = "📣 " + PLATFORM_TAGLINE + "\n\n" + PLATFORM_DESC + "\n\n" + base.cta;
       base.hashtags = hashtags;
       break;
     }
     case "facebook": {
-      base.headline = `SUDROS — ${PLATFORM_TAGLINE}`;
-      base.caption = `${PLATFORM_DESC}\n\n${base.cta}`;
+      base.headline = "SUDROS - " + PLATFORM_TAGLINE;
+      base.caption = PLATFORM_DESC + "\n\n" + base.cta;
       break;
     }
     case "tiktok": {
       base.hook = "Butuh platform jual-beli lokal yang gampang dipakai?";
-      base.video_script = `${PLATFORM_DESC}\n\n${base.cta}`;
-      base.caption = `SUDROS — ${PLATFORM_TAGLINE}`;
+      base.video_script = PLATFORM_DESC + "\n\n" + base.cta;
+      base.caption = "SUDROS - " + PLATFORM_TAGLINE;
       base.hashtags = hashtags;
       break;
     }
     case "whatsapp": {
-      base.short_copy = `Halo! Kenalin SUDROS 👋\n\n${PLATFORM_DESC}\n\n${base.cta}\n${siteUrl}`;
+      base.short_copy =
+        "Halo! Kenalin SUDROS 👋\n\n" + PLATFORM_DESC + "\n\n" + base.cta + "\n" + siteUrl;
       break;
     }
     case "general":
     default: {
-      base.headline = `SUDROS — ${PLATFORM_TAGLINE}`;
-      base.caption = `${PLATFORM_DESC}\n\n${base.cta}`;
+      base.headline = "SUDROS - " + PLATFORM_TAGLINE;
+      base.caption = PLATFORM_DESC + "\n\n" + base.cta;
       break;
     }
   }
 
   return base;
-        }
+}
