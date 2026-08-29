@@ -1,5 +1,5 @@
 // PATH: app/admin/AdminNav.tsx
-// AKSI: UPDATE FILE (nav dibuat sticky supaya tetap terlihat saat scroll ke bawah)
+// AKSI: UPDATE FILE (tambah tab Marketing untuk SUDROS Marketing Center)
 
 "use client";
 
@@ -15,6 +15,7 @@ const navItems = [
   { href: "/admin/payments", label: "Payments" },
   { href: "/admin/ai-usage", label: "AI Usage" },
   { href: "/admin/agents", label: "Agents" },
+  { href: "/admin/marketing", label: "Marketing" },
 ];
 
 export default function AdminNav() {
