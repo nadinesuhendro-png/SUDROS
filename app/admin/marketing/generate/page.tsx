@@ -57,7 +57,23 @@ export default async function GenerateSelectListingPage({
       <h2 className="text-sm font-semibold" style={{ color: "var(--primary-dark)" }}>
         Pilih Listing untuk Dipromosikan
       </h2>
+<Link
+  href="/admin/marketing/generate/platform"
+  className="flex items-center gap-3 rounded-[var(--radius)] border-2 border-dashed p-3"
+  style={{ borderColor: "var(--primary)" }}
+>
+  <span className="text-2xl">📣</span>
+  <div className="flex flex-col">
+    <span className="text-sm font-medium">Promosikan Platform SUDROS</span>
+    <span className="text-xs text-[var(--muted-foreground)]">
+      Bukan listing tertentu — ajak orang kenal & daftar SUDROS
+    </span>
+  </div>
+</Link>
 
+<p className="text-xs font-medium text-[var(--muted-foreground)]">
+  Atau pilih listing spesifik:
+</p>
       <form className="flex gap-2">
         <input
           type="text"
