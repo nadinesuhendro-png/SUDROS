@@ -1,5 +1,5 @@
 // PATH: app/admin/marketing/content/[id]/page.tsx
-// AKSI: UPDATE FILE (tambah form assign/pindah campaign)
+// AKSI: UPDATE FILE (tambah bagian Tracking Link setelah Campaign)
 
 import Image from "next/image";
 import Link from "next/link";
@@ -62,6 +62,8 @@ function formatPrice(price: number) {
   }).format(price);
 }
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://sudros-chi.vercel.app";
+
 export default async function ContentDetailPage({
   params,
 }: {
@@ -89,6 +91,12 @@ export default async function ContentDetailPage({
     .order("created_at", { ascending: false })
     .returns<CampaignOption[]>();
 
+  const { count: clickCount } = await supabase
+    .from("marketing_events")
+    .select("*", { count: "exact", head: true })
+    .eq("content_id", content.id)
+    .eq("event_type", "social_click");
+
   const listing = content.listings;
   const sortedImages = listing
     ? [...(listing.listing_images || [])].sort((a, b) => a.sort_order - b.sort_order)
@@ -97,6 +105,7 @@ export default async function ContentDetailPage({
   const hashtagsText = content.hashtags?.length
     ? content.hashtags.map((h) => `#${h}`).join(" ")
     : "";
+  const trackingLink = `${SITE_URL}/go/${content.id}`;
 
   return (
     <div className="flex flex-col gap-4">
@@ -181,6 +190,20 @@ export default async function ContentDetailPage({
         </form>
       </div>
 
+      <div className="flex flex-col gap-1 rounded-[var(--radius)] border border-blue-200 bg-blue-50 p-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-blue-700">
+            🔗 Tracking Link ({clickCount || 0} klik)
+          </span>
+          <CopyButton text={trackingLink} label="Link" />
+        </div>
+        <p className="break-all text-xs text-blue-600">{trackingLink}</p>
+        <p className="text-[10px] text-[var(--muted-foreground)]">
+          Bagikan link ini (bukan link listing langsung) supaya klik dari sosial media
+          tercatat di Analytics.
+        </p>
+      </div>
+
       <div className="flex flex-col gap-3">
         {content.headline ? (
           <div className="flex flex-col gap-1 rounded-[var(--radius)] border border-gray-200 p-3">
@@ -261,21 +284,6 @@ export default async function ContentDetailPage({
             <p className="text-sm text-blue-600">{hashtagsText}</p>
           </div>
         ) : null}
-
-        {listing ? (
-          <div className="flex flex-col gap-1 rounded-[var(--radius)] border border-gray-200 p-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-[var(--muted-foreground)]">
-                Listing Link
-              </span>
-              <CopyButton
-                text={`${process.env.NEXT_PUBLIC_SITE_URL || "https://sudros-chi.vercel.app"}/listings/${listing.id}`}
-                label="Link"
-              />
-            </div>
-            <p className="text-sm text-blue-600">/listings/{listing.id}</p>
-          </div>
-        ) : null}
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -337,4 +345,4 @@ export default async function ContentDetailPage({
       </div>
     </div>
   );
-        }
+}
