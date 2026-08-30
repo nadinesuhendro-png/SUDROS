@@ -1,5 +1,6 @@
+cat > /home/claude/marketing-final/subnav-final.tsx << 'EOF'
 // PATH: app/admin/marketing/MarketingSubNav.tsx
-// AKSI: BUAT FILE BARU
+// AKSI: UPDATE FILE (tambah tab Factory)
 
 "use client";
 
@@ -9,6 +10,7 @@ import { usePathname } from "next/navigation";
 const subNavItems = [
   { href: "/admin/marketing", label: "Overview" },
   { href: "/admin/marketing/generate", label: "Generate" },
+  { href: "/admin/marketing/factory", label: "Factory" },
   { href: "/admin/marketing/content", label: "Library" },
   { href: "/admin/marketing/campaigns", label: "Campaigns" },
   { href: "/admin/marketing/templates", label: "Templates" },
@@ -44,3 +46,5 @@ export default function MarketingSubNav() {
     </div>
   );
 }
+EOF
+echo done
