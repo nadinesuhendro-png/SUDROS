@@ -1,4 +1,3 @@
-cat > /home/claude/marketing-final/subnav-final.tsx << 'EOF'
 // PATH: app/admin/marketing/MarketingSubNav.tsx
 // AKSI: UPDATE FILE (tambah tab Factory)
 
@@ -46,5 +45,3 @@ export default function MarketingSubNav() {
     </div>
   );
 }
-EOF
-echo done
