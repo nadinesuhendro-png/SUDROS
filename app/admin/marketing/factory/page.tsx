@@ -1,6 +1,5 @@
-cat > /home/claude/marketing-final/factory-page.tsx << 'EOF'
 // PATH: app/admin/marketing/factory/page.tsx
-// AKSI: BUAT FILE BARU (Content Factory -- pilih beberapa listing sekaligus untuk generate)
+// AKSI: BUAT FILE BARU
 
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
@@ -152,5 +151,3 @@ export default async function ContentFactoryPage({
     </div>
   );
 }
-EOF
-echo done
