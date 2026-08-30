@@ -1,4 +1,3 @@
-cat > /home/claude/marketing-final/factory-actions.ts << 'EOF'
 // PATH: app/admin/marketing/factory/actions.ts
 // AKSI: BUAT FILE BARU (batch generation -- sequential, TIDAK paralel, aman terhadap rate limit)
 
@@ -66,7 +65,6 @@ export async function generateBatchContent(formData: FormData) {
 
   const results: { listingTitle: string; status: "ai" | "fallback" | "failed" }[] = [];
 
-  // Sequential, BUKAN Promise.all -- supaya tidak membombardir Gemini API sekaligus
   for (const listingId of limitedIds) {
     try {
       const { data: listing } = await supabase
@@ -118,7 +116,6 @@ export async function generateBatchContent(formData: FormData) {
   const fallbackCount = results.filter((r) => r.status === "fallback").length;
   const failedCount = results.filter((r) => r.status === "failed").length;
 
-  // Satu notifikasi ringkasan -- bukan satu per content (hindari spam notifikasi)
   await supabase.from("notifications").insert({
     recipient_user_id: userId,
     title: "Marketing Content Selesai Dibuat",
@@ -129,6 +126,4 @@ export async function generateBatchContent(formData: FormData) {
   });
 
   redirect("/admin/marketing/content");
-}
-EOF
-echo done
+        }
