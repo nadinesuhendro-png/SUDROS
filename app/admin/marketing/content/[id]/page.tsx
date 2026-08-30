@@ -1,11 +1,12 @@
 // PATH: app/admin/marketing/content/[id]/page.tsx
-// AKSI: BUAT FILE BARU
+// AKSI: UPDATE FILE (tambah form assign/pindah campaign)
 
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { duplicateContent, archiveContent, deleteContent, markPublished } from "../../actions";
+import { assignContentToCampaign } from "../../campaigns/actions";
 import CopyButton from "../CopyButton";
 
 type ContentDetail = {
@@ -20,6 +21,7 @@ type ContentDetail = {
   hashtags: string[];
   status: string;
   generation_method: string;
+  campaign_id: string | null;
   created_at: string;
   updated_at: string;
   listings: {
@@ -30,6 +32,11 @@ type ContentDetail = {
     listing_images: { image_url: string; sort_order: number }[];
   } | null;
   marketing_campaigns: { name: string } | null;
+};
+
+type CampaignOption = {
+  id: string;
+  name: string;
 };
 
 const platformLabel: Record<string, string> = {
@@ -66,7 +73,7 @@ export default async function ContentDetailPage({
   const { data: content } = await supabase
     .from("marketing_contents")
     .select(
-      "id, platform, headline, hook, caption, short_copy, video_script, cta, hashtags, status, generation_method, created_at, updated_at, listings(id, title, price, location_city, listing_images(image_url, sort_order)), marketing_campaigns(name)"
+      "id, platform, headline, hook, caption, short_copy, video_script, cta, hashtags, status, generation_method, campaign_id, created_at, updated_at, listings(id, title, price, location_city, listing_images(image_url, sort_order)), marketing_campaigns(name)"
     )
     .eq("id", id)
     .maybeSingle<ContentDetail>();
@@ -74,6 +81,13 @@ export default async function ContentDetailPage({
   if (!content) {
     notFound();
   }
+
+  const { data: campaignOptions } = await supabase
+    .from("marketing_campaigns")
+    .select("id, name")
+    .neq("status", "archived")
+    .order("created_at", { ascending: false })
+    .returns<CampaignOption[]>();
 
   const listing = content.listings;
   const sortedImages = listing
@@ -118,7 +132,12 @@ export default async function ContentDetailPage({
             </span>
           </div>
         </Link>
-      ) : null}
+      ) : (
+        <div className="flex items-center gap-2 rounded-[var(--radius)] border border-gray-200 p-3">
+          <span className="text-lg">📣</span>
+          <span className="text-sm font-medium">Promosi Platform SUDROS</span>
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-2 text-xs text-[var(--muted-foreground)]">
         <span className="rounded-full bg-gray-100 px-2 py-0.5">
@@ -135,6 +154,31 @@ export default async function ContentDetailPage({
         <span className="rounded-full bg-gray-100 px-2 py-0.5">
           {new Date(content.created_at).toLocaleDateString("id-ID")}
         </span>
+      </div>
+
+      <div className="flex flex-col gap-1 rounded-[var(--radius)] border border-gray-200 p-3">
+        <span className="text-xs font-medium text-[var(--muted-foreground)]">Campaign</span>
+        <form action={assignContentToCampaign} className="flex gap-2">
+          <input type="hidden" name="content_id" value={content.id} />
+          <select
+            name="campaign_id"
+            defaultValue={content.campaign_id || ""}
+            className="flex-1 rounded-[var(--radius)] border border-gray-300 px-2 py-1.5 text-xs"
+          >
+            <option value="">Tanpa campaign</option>
+            {(campaignOptions || []).map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            className="rounded-[var(--radius)] border border-gray-300 px-3 py-1.5 text-xs font-medium"
+          >
+            Simpan
+          </button>
+        </form>
       </div>
 
       <div className="flex flex-col gap-3">
@@ -229,9 +273,7 @@ export default async function ContentDetailPage({
                 label="Link"
               />
             </div>
-            <p className="text-sm text-blue-600">
-              /listings/{listing.id}
-            </p>
+            <p className="text-sm text-blue-600">/listings/{listing.id}</p>
           </div>
         ) : null}
       </div>
@@ -295,4 +337,4 @@ export default async function ContentDetailPage({
       </div>
     </div>
   );
-      }
+        }
