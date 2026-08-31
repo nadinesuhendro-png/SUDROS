@@ -1,5 +1,5 @@
 // PATH: app/dashboard/listings/page.tsx
-// AKSI: UPDATE FILE (aktifkan kembali CaptionButton -- sudah lebih reliable berkat retry-with-backoff di gemini-provider.ts)
+// AKSI: UPDATE FILE (dark mode retrofit)
 
 import Image from "next/image";
 import Link from "next/link";
@@ -32,21 +32,21 @@ function formatPrice(price: number) {
 function ReviewBadge({ listing }: { listing: MyListing }) {
   if (listing.status === "rejected") {
     return (
-      <span className="inline-flex w-fit items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+      <span className="inline-flex w-fit items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-300">
         Ditolak
       </span>
     );
   }
   if (listing.status === "suspended") {
     return (
-      <span className="inline-flex w-fit items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+      <span className="inline-flex w-fit items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-300">
         Ditangguhkan
       </span>
     );
   }
   if (!listing.ai_moderation_checked_at || listing.status === "pending") {
     return (
-      <span className="inline-flex w-fit items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+      <span className="inline-flex w-fit items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-300">
         <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
         Sedang dalam peninjauan
       </span>
@@ -54,7 +54,7 @@ function ReviewBadge({ listing }: { listing: MyListing }) {
   }
   if (listing.status === "active") {
     return (
-      <span className="inline-flex w-fit items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+      <span className="inline-flex w-fit items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-950 dark:text-green-300">
         Aktif
       </span>
     );
@@ -112,10 +112,10 @@ export default async function MyListingsPage() {
           return (
             <div
               key={listing.id}
-              className="flex flex-col gap-3 rounded-[var(--radius)] border border-gray-200 p-3"
+              className="flex flex-col gap-3 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-3"
             >
               <div className="flex gap-3">
-                <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-[var(--radius)] bg-gray-100">
+                <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-[var(--radius)] bg-[var(--muted)]">
                   {coverImage ? (
                     <Image
                       src={coverImage}
@@ -127,7 +127,9 @@ export default async function MyListingsPage() {
                 </div>
 
                 <div className="flex flex-1 flex-col gap-1">
-                  <span className="text-sm font-medium">{listing.title}</span>
+                  <span className="text-sm font-medium text-[var(--card-foreground)]">
+                    {listing.title}
+                  </span>
                   <span
                     className="text-sm font-semibold"
                     style={{ color: "var(--primary)" }}
@@ -146,7 +148,7 @@ export default async function MyListingsPage() {
                 <div className="flex flex-col gap-2">
                   <Link
                     href={`/dashboard/listings/${listing.id}/edit`}
-                    className="rounded-[var(--radius)] border border-gray-300 px-3 py-1 text-center text-xs font-medium"
+                    className="rounded-[var(--radius)] border border-[var(--border)] px-3 py-1 text-center text-xs font-medium text-[var(--card-foreground)]"
                   >
                     Edit
                   </Link>
@@ -154,7 +156,11 @@ export default async function MyListingsPage() {
                     <input type="hidden" name="id" value={listing.id} />
                     <button
                       type="submit"
-                      className="w-full rounded-[var(--radius)] border border-red-300 px-3 py-1 text-xs font-medium text-red-600"
+                      className="w-full rounded-[var(--radius)] border px-3 py-1 text-xs font-medium"
+                      style={{
+                        borderColor: "var(--destructive)",
+                        color: "var(--destructive)",
+                      }}
                     >
                       Hapus
                     </button>
