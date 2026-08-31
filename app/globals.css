@@ -10,11 +10,51 @@
   --muted: #f4f6f9;
   --muted-foreground: #64748b;
   --border: #e2e8f0;
+  --card: #ffffff;
+  --card-foreground: #0f2a52;
+  --input: #e2e8f0;
+  --ring: #1d6fb8;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
   --radius: 0.75rem;
+  color-scheme: light;
+}
+
+.dark {
+  --background: #0b1220;
+  --foreground: #e8eef7;
+  --primary: #4a9fe0;
+  --primary-light: #6fc0f0;
+  --primary-dark: #2aa8e0;
+  --primary-foreground: #ffffff;
+  --muted: #16202f;
+  --muted-foreground: #94a3b8;
+  --border: #243247;
+  --card: #111a2b;
+  --card-foreground: #e8eef7;
+  --input: #243247;
+  --ring: #4a9fe0;
+  --destructive: #f87171;
+  --destructive-foreground: #1a0505;
+  color-scheme: dark;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: system-ui, -apple-system, sans-serif;
+}
+
+body,
+body * {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body,
+  body * {
+    transition: none !important;
+  }
 }
