@@ -1,5 +1,5 @@
 // PATH: app/dashboard/DashboardNav.tsx
-// AKSI: UPDATE FILE (link Favorit & Notifikasi diarahkan ke /dashboard/favorites & /dashboard/notifications)
+// AKSI: UPDATE FILE (dark mode retrofit — bg/border pakai token semantik)
 
 "use client";
 
@@ -29,7 +29,7 @@ export default function DashboardNav({
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-[var(--background)] border-[var(--border)]">
       <div className="mx-auto flex max-w-2xl items-center justify-around px-2 py-2">
         {navItems.map((item) => {
           const isActive =
