@@ -1,5 +1,5 @@
 // PATH: app/dashboard/page.tsx
-// AKSI: UPDATE FILE (redesain jadi kartu, bottom nav & auth check dipindah ke layout.tsx)
+// AKSI: UPDATE FILE (dark mode retrofit)
 
 import Image from "next/image";
 import Link from "next/link";
@@ -58,13 +58,13 @@ export default async function DashboardPage() {
 
       {/* Ringkasan singkat */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-[var(--radius)] border border-gray-200 p-4">
+        <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-4">
           <p className="text-2xl font-bold" style={{ color: "var(--primary)" }}>
             {listingCount || 0}
           </p>
           <p className="text-xs text-[var(--muted-foreground)]">Total Listing</p>
         </div>
-        <div className="rounded-[var(--radius)] border border-gray-200 p-4">
+        <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-4">
           <p className="text-2xl font-bold" style={{ color: "var(--primary)" }}>
             {activeListingCount || 0}
           </p>
@@ -85,7 +85,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-2 gap-3">
         <Link
           href="/dashboard/listings"
-          className="flex flex-col gap-1 rounded-[var(--radius)] border border-gray-200 p-4 text-sm font-medium"
+          className="flex flex-col gap-1 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-4 text-sm font-medium text-[var(--card-foreground)]"
         >
           📋 Listing Saya
           <span className="text-xs font-normal text-[var(--muted-foreground)]">
@@ -94,7 +94,7 @@ export default async function DashboardPage() {
         </Link>
         <Link
           href="/dashboard/payments"
-          className="flex flex-col gap-1 rounded-[var(--radius)] border border-gray-200 p-4 text-sm font-medium"
+          className="flex flex-col gap-1 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-4 text-sm font-medium text-[var(--card-foreground)]"
         >
           💳 Riwayat Pembayaran
           <span className="text-xs font-normal text-[var(--muted-foreground)]">
