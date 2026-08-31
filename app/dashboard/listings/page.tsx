@@ -1,11 +1,11 @@
 // PATH: app/dashboard/listings/page.tsx
-// AKSI: UPDATE FILE (tambah badge "Sedang dalam peninjauan" berdasarkan status & ai_moderation_checked_at)
+// AKSI: UPDATE FILE (aktifkan kembali CaptionButton -- sudah lebih reliable berkat retry-with-backoff di gemini-provider.ts)
 
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { deleteListing } from "./actions";
-// import CaptionButton from "./CaptionButton"; // TODO: aktifkan lagi setelah masalah Gemini 429/UNAVAILABLE selesai
+import CaptionButton from "./CaptionButton";
 
 export const maxDuration = 60;
 
@@ -30,7 +30,6 @@ function formatPrice(price: number) {
 }
 
 function ReviewBadge({ listing }: { listing: MyListing }) {
-  // Ditolak/suspend: admin sudah manual review, tampilkan status apa adanya
   if (listing.status === "rejected") {
     return (
       <span className="inline-flex w-fit items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
@@ -45,7 +44,6 @@ function ReviewBadge({ listing }: { listing: MyListing }) {
       </span>
     );
   }
-  // Belum sempat dicek AI (baru dibuat / Gemini gagal) ATAU masih berstatus pending
   if (!listing.ai_moderation_checked_at || listing.status === "pending") {
     return (
       <span className="inline-flex w-fit items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
@@ -54,7 +52,6 @@ function ReviewBadge({ listing }: { listing: MyListing }) {
       </span>
     );
   }
-  // Sudah dicek dan aktif
   if (listing.status === "active") {
     return (
       <span className="inline-flex w-fit items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
@@ -165,7 +162,7 @@ export default async function MyListingsPage() {
                 </div>
               </div>
 
-              {/* <CaptionButton listingId={listing.id} /> */}
+              <CaptionButton listingId={listing.id} />
             </div>
           );
         })}
