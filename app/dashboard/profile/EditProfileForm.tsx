@@ -1,5 +1,5 @@
 // PATH: app/dashboard/profile/EditProfileForm.tsx
-// AKSI: UPDATE FILE (ganti <main> jadi <div> agar tidak dobel wrapper)
+// AKSI: UPDATE FILE (dark mode retrofit)
 
 "use client";
 
@@ -99,13 +99,13 @@ export default function EditProfileForm({
       </h1>
 
       {errorMessage || localError ? (
-        <div className="rounded-[var(--radius)] bg-red-50 px-4 py-3 text-sm text-red-600">
+        <div className="rounded-[var(--radius)] px-4 py-3 text-sm bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-300">
           {localError || errorMessage}
         </div>
       ) : null}
 
       {successMessage ? (
-        <div className="rounded-[var(--radius)] bg-green-50 px-4 py-3 text-sm text-green-600">
+        <div className="rounded-[var(--radius)] px-4 py-3 text-sm bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-300">
           Profil berhasil diperbarui
         </div>
       ) : null}
@@ -118,7 +118,7 @@ export default function EditProfileForm({
         className="flex flex-col gap-4"
       >
         <div className="flex flex-col items-center gap-2">
-          <div className="relative h-24 w-24 overflow-hidden rounded-full bg-gray-100">
+          <div className="relative h-24 w-24 overflow-hidden rounded-full bg-[var(--muted)]">
             {previewUrl ? (
               <Image src={previewUrl} alt="Foto profil" fill className="object-cover" />
             ) : null}
@@ -146,7 +146,10 @@ export default function EditProfileForm({
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="whatsapp">
+          <label
+            className="mb-1 block text-sm font-medium text-[var(--foreground)]"
+            htmlFor="whatsapp"
+          >
             Nomor WhatsApp
           </label>
           <input
@@ -155,7 +158,7 @@ export default function EditProfileForm({
             type="tel"
             defaultValue={profile?.whatsapp || ""}
             placeholder="Contoh: 6281234567890"
-            className="w-full rounded-[var(--radius)] border border-gray-300 px-4 py-2 text-sm"
+            className="w-full rounded-[var(--radius)] border border-[var(--input)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--card-foreground)]"
           />
           <p className="mt-1 text-xs text-[var(--muted-foreground)]">
             Gunakan format 62 di awal, tanpa spasi atau tanda +
