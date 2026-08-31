@@ -1,5 +1,5 @@
 // PATH: app/dashboard/favorites/page.tsx
-// AKSI: BUAT FILE BARU (pindahan dari app/favorites/page.tsx — Navbar & redirect dihapus karena sudah dihandle app/dashboard/layout.tsx)
+// AKSI: UPDATE FILE (dark mode retrofit)
 
 import Image from "next/image";
 import Link from "next/link";
@@ -66,9 +66,9 @@ export default async function FavoritesPage() {
               <Link
                 key={f.id}
                 href={`/listings/${listing.id}`}
-                className="flex flex-col overflow-hidden rounded-[var(--radius)] border border-gray-200"
+                className="flex flex-col overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)]"
               >
-                <div className="relative aspect-square w-full bg-gray-100">
+                <div className="relative aspect-square w-full bg-[var(--muted)]">
                   {coverImage ? (
                     <Image
                       src={coverImage}
@@ -79,7 +79,7 @@ export default async function FavoritesPage() {
                   ) : null}
                 </div>
                 <div className="flex flex-col gap-1 p-2">
-                  <span className="line-clamp-2 text-sm font-medium">
+                  <span className="line-clamp-2 text-sm font-medium text-[var(--card-foreground)]">
                     {listing.title}
                   </span>
                   <span
