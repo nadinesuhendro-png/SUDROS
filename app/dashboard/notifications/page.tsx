@@ -1,5 +1,5 @@
 // PATH: app/dashboard/notifications/page.tsx
-// AKSI: BUAT FILE BARU (pindahan dari app/notifications/page.tsx — Navbar & redirect dihapus karena sudah dihandle app/dashboard/layout.tsx)
+// AKSI: UPDATE FILE (dark mode retrofit)
 
 import { createClient } from "@/lib/supabase/server";
 import { markAllAsRead } from "./actions";
@@ -63,11 +63,14 @@ export default async function NotificationsPage() {
         {(notifications || []).map((n) => (
           <div
             key={n.id}
-            className={`rounded-[var(--radius)] border p-3 text-sm ${
-              n.is_read ? "border-gray-200" : "border-blue-300 bg-blue-50"
-            }`}
+            className="rounded-[var(--radius)] border p-3 text-sm"
+            style={
+              n.is_read
+                ? { borderColor: "var(--border)", backgroundColor: "var(--card)" }
+                : { borderColor: "var(--primary)", backgroundColor: "var(--muted)" }
+            }
           >
-            <p className="font-medium">{n.title}</p>
+            <p className="font-medium text-[var(--card-foreground)]">{n.title}</p>
             <p className="text-[var(--muted-foreground)]">{n.message}</p>
             <p className="mt-1 text-xs text-[var(--muted-foreground)]">
               {formatDate(n.created_at)}
