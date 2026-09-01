@@ -1,5 +1,5 @@
 // PATH: app/dashboard/listings/new/NewListingForm.tsx
-// AKSI: UPDATE FILE (tambah tombol Bantu AI)
+// AKSI: GANTI SELURUH ISI FILE (retrofit dark mode)
 
 "use client";
 
@@ -18,9 +18,9 @@ const cardStyle = {
 };
 
 const inputClassName =
-  "w-full rounded-[var(--radius)] border border-gray-300 px-4 py-2 text-sm";
+  "w-full rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--foreground)]";
 
-const labelClassName = "block text-sm font-medium text-left mb-1";
+const labelClassName = "block text-sm font-medium text-left mb-1 text-[var(--foreground)]";
 
 export default function NewListingForm({
   categories,
@@ -158,7 +158,7 @@ export default function NewListingForm({
         </h1>
 
         {errorMessage || localError ? (
-          <div className="mb-4 rounded-[var(--radius)] bg-red-50 px-4 py-3 text-sm text-red-600">
+          <div className="mb-4 rounded-[var(--radius)] bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-950/30 dark:text-red-400">
             {localError || errorMessage}
           </div>
         ) : null}
@@ -197,18 +197,18 @@ export default function NewListingForm({
           </div>
 
           {aiError ? (
-            <p className="text-xs text-red-600">{aiError}</p>
+            <p className="text-xs text-red-600 dark:text-red-400">{aiError}</p>
           ) : null}
 
           {aiSuggestion ? (
-            <div className="flex flex-col gap-2 rounded-[var(--radius)] border border-blue-200 bg-blue-50 p-3 text-sm">
-              <p className="text-xs font-medium text-blue-700">
+            <div className="flex flex-col gap-2 rounded-[var(--radius)] border border-blue-200 bg-blue-50 p-3 text-sm dark:border-blue-900/50 dark:bg-blue-950/30">
+              <p className="text-xs font-medium text-blue-700 dark:text-blue-400">
                 Saran AI (dibuat dengan bantuan AI)
               </p>
-              <p>
+              <p className="text-[var(--foreground)]">
                 <span className="font-medium">Judul:</span> {aiSuggestion.title}
               </p>
-              <p>
+              <p className="text-[var(--foreground)]">
                 <span className="font-medium">Deskripsi:</span>{" "}
                 {aiSuggestion.description}
               </p>
@@ -223,7 +223,7 @@ export default function NewListingForm({
                 <button
                   type="button"
                   onClick={() => setAiSuggestion(null)}
-                  className="rounded-[var(--radius)] border border-gray-300 px-3 py-1 text-xs"
+                  className="rounded-[var(--radius)] border border-[var(--border)] px-3 py-1 text-xs text-[var(--foreground)]"
                 >
                   Tolak
                 </button>
@@ -333,4 +333,4 @@ export default function NewListingForm({
       </div>
     </main>
   );
-}
+                }
