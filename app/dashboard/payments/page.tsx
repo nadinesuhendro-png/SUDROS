@@ -1,5 +1,5 @@
 // PATH: app/dashboard/payments/page.tsx
-// AKSI: UPDATE FILE (auth check dipindah ke layout.tsx, jadi tidak dobel)
+// AKSI: GANTI SELURUH ISI FILE (retrofit dark mode)
 
 import { createClient } from "@/lib/supabase/server";
 
@@ -38,11 +38,11 @@ const statusLabel: Record<string, string> = {
 };
 
 const statusColor: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-700",
-  paid: "bg-green-100 text-green-700",
-  failed: "bg-red-100 text-red-700",
-  expired: "bg-gray-100 text-gray-700",
-  cancelled: "bg-gray-100 text-gray-700",
+  pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-400",
+  paid: "bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400",
+  failed: "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400",
+  expired: "bg-gray-100 text-gray-700 dark:bg-gray-800/60 dark:text-gray-400",
+  cancelled: "bg-gray-100 text-gray-700 dark:bg-gray-800/60 dark:text-gray-400",
 };
 
 export default async function PaymentHistoryPage() {
@@ -78,8 +78,8 @@ export default async function PaymentHistoryPage() {
       </h1>
 
       {activePackage ? (
-        <div className="rounded-[var(--radius)] bg-green-50 p-4 text-sm">
-          <p className="font-medium">
+        <div className="rounded-[var(--radius)] bg-green-50 p-4 text-sm dark:bg-green-950/30">
+          <p className="font-medium text-[var(--foreground)]">
             Paket aktif: {activePackage.advertising_packages?.name}
           </p>
           <p className="text-[var(--muted-foreground)]">
@@ -87,7 +87,7 @@ export default async function PaymentHistoryPage() {
           </p>
         </div>
       ) : (
-        <div className="rounded-[var(--radius)] bg-gray-50 p-4 text-sm text-[var(--muted-foreground)]">
+        <div className="rounded-[var(--radius)] bg-[var(--muted)] p-4 text-sm text-[var(--muted-foreground)]">
           Belum ada paket berbayar aktif. Masih menggunakan paket Free.
         </div>
       )}
@@ -102,13 +102,14 @@ export default async function PaymentHistoryPage() {
         {(orders || []).map((order) => (
           <div
             key={order.id}
-            className="flex flex-col gap-1 rounded-[var(--radius)] border border-gray-200 p-3 text-sm"
+            className="flex flex-col gap-1 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-3 text-sm"
           >
             <div className="flex items-center justify-between">
-              <p className="font-medium">#{order.order_number}</p>
+              <p className="font-medium text-[var(--foreground)]">#{order.order_number}</p>
               <span
                 className={`rounded-full px-2 py-1 text-xs font-medium ${
-                  statusColor[order.payment_status] || "bg-gray-100 text-gray-700"
+                  statusColor[order.payment_status] ||
+                  "bg-gray-100 text-gray-700 dark:bg-gray-800/60 dark:text-gray-400"
                 }`}
               >
                 {statusLabel[order.payment_status] || order.payment_status}
