@@ -1,10 +1,10 @@
 // PATH: app/dashboard/package/page.tsx
-// AKSI: BUAT FILE BARU
+// AKSI: GANTI SELURUH ISI FILE (refactor pakai FeatureGate)
 
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getUserEntitlements } from "@/lib/entitlements/service";
-import FeatureLock from "@/components/FeatureLock";
+import FeatureGate from "@/components/FeatureGate";
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("id-ID", { dateStyle: "long" });
@@ -139,16 +139,15 @@ export default async function PackageUsagePage() {
           {pkg?.prioritySupport ? "✓" : "✕"} Dukungan Prioritas
         </p>
 
-        {pkg?.analyticsLevel && pkg.analyticsLevel !== "none" ? (
+        <FeatureGate
+          entitlements={entitlements}
+          feature="analytics"
+          reason="Upgrade paket untuk melihat performa listing Anda secara detail."
+        >
           <p className="text-sm text-[var(--card-foreground)]">
-            ✓ Analytics ({pkg.analyticsLevel})
+            ✓ Analytics ({pkg?.analyticsLevel})
           </p>
-        ) : (
-          <FeatureLock
-            featureName="Analytics"
-            reason="Upgrade paket untuk melihat performa listing Anda secara detail."
-          />
-        )}
+        </FeatureGate>
       </div>
 
       <Link
@@ -160,4 +159,4 @@ export default async function PackageUsagePage() {
       </Link>
     </main>
   );
-        }
+}
