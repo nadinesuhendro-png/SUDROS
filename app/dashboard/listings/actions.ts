@@ -1,5 +1,5 @@
 // PATH: app/dashboard/listings/actions.ts
-// AKSI: UPDATE FILE (trigger Moderation Agent otomatis setelah listing baru dibuat, jalan di background)
+// AKSI: GANTI SELURUH ISI FILE (tambah enforcement quota dari Entitlement Engine)
 
 "use server";
 
@@ -7,6 +7,7 @@ import { after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { runModerationAgentForListing } from "@/lib/agents/moderation-agent";
+import { getUserEntitlements } from "@/lib/entitlements/service";
 
 type CreateListingInput = {
   id: string;
@@ -28,6 +29,17 @@ export async function createListing(input: CreateListingInput) {
 
   if (!user) {
     redirect("/login");
+  }
+
+  // Enforcement wajib di server — jangan hanya andalkan UI menyembunyikan tombol
+  const entitlements = await getUserEntitlements(user.id);
+
+  if (!entitlements.canCreateListing) {
+    redirect(
+      `/dashboard/listings/new?error=${encodeURIComponent(
+        "Kuota listing aktif Anda sudah habis. Upgrade paket untuk menambah kuota."
+      )}`
+    );
   }
 
   const title = input.title.trim();
@@ -242,4 +254,4 @@ export async function deleteListingImage(formData: FormData) {
   await supabase.from("listing_images").delete().eq("id", imageId);
 
   redirect(`/dashboard/listings/${listingId}/edit`);
-}
+                                                                 }
