@@ -1,5 +1,5 @@
 // PATH: app/listings/[id]/page.tsx
-// AKSI: UPDATE FILE (tambah favorite button + view/WA tracking)
+// AKSI: GANTI SELURUH ISI FILE (tambah tombol Kirim Pesan)
 
 import Image from "next/image";
 import Link from "next/link";
@@ -10,6 +10,7 @@ import ListingGallery from "./ListingGallery";
 import ReportButton from "./ReportButton";
 import FavoriteButton from "./FavoriteButton";
 import WhatsAppButton from "./WhatsAppButton";
+import { startConversation } from "@/app/dashboard/messages/actions";
 
 type ListingDetail = {
   id: string;
@@ -44,6 +45,10 @@ export default async function ListingDetailPage({
   const { id } = await params;
   const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const { data: listing } = await supabase
     .from("listings")
     .select(
@@ -67,6 +72,8 @@ export default async function ListingDetailPage({
     `Halo, saya tertarik dengan listing "${listing.title}" di SUDROS.`
   );
   const waLink = whatsapp ? `https://wa.me/${whatsapp}?text=${waMessage}` : null;
+
+  const isOwnListing = user?.id === listing.owner_id;
 
   return (
     <>
@@ -125,13 +132,45 @@ export default async function ListingDetailPage({
           </Link>
         ) : null}
 
-        {waLink ? (
-          <WhatsAppButton listingId={listing.id} waLink={waLink} />
-        ) : (
-          <p className="text-center text-xs text-[var(--muted-foreground)]">
-            Penjual belum menambahkan nomor WhatsApp
-          </p>
-        )}
+        <div className="flex flex-col gap-2">
+          {waLink ? (
+            <WhatsAppButton listingId={listing.id} waLink={waLink} />
+          ) : (
+            <p className="text-center text-xs text-[var(--muted-foreground)]">
+              Penjual belum menambahkan nomor WhatsApp
+            </p>
+          )}
+
+          {!isOwnListing && user ? (
+            <form action={startConversation}>
+              <input type="hidden" name="seller_id" value={listing.owner_id} />
+              <input type="hidden" name="listing_id" value={listing.id} />
+              <button
+                type="submit"
+                className="w-full rounded-[var(--radius)] border py-2.5 text-sm font-medium"
+                style={{
+                  borderColor: "var(--primary)",
+                  color: "var(--primary)",
+                }}
+              >
+                💬 Kirim Pesan
+              </button>
+            </form>
+          ) : null}
+
+          {!isOwnListing && !user ? (
+            <Link
+              href="/login"
+              className="block w-full rounded-[var(--radius)] border py-2.5 text-center text-sm font-medium"
+              style={{
+                borderColor: "var(--primary)",
+                color: "var(--primary)",
+              }}
+            >
+              💬 Masuk untuk Kirim Pesan
+            </Link>
+          ) : null}
+        </div>
 
         <div className="mt-2 flex justify-center">
           <ReportButton listingId={listing.id} />
