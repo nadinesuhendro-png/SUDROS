@@ -1,5 +1,5 @@
 // PATH: lib/entitlements/service.ts
-// AKSI: GANTI SELURUH ISI FILE (fallback ke paket Free saat tidak ada langganan aktif)
+// AKSI: GANTI SELURUH ISI FILE (tambah canUserAccess & getFeatureLimit reusable)
 
 import { createClient } from "@/lib/supabase/server";
 
@@ -27,6 +27,18 @@ export type UserEntitlements = {
   canCreateListing: boolean;
   canFeatureListing: boolean;
 };
+
+// Fitur boolean paket (nyala/mati) yang bisa dicek dengan canUserAccess()
+export type BooleanFeatureKey =
+  | "homepagePriority"
+  | "categoryPriority"
+  | "sellerBadge"
+  | "brandProfile"
+  | "prioritySupport"
+  | "analytics";
+
+// Fitur berbasis kuota (angka) yang bisa dicek dengan getFeatureLimit()
+export type QuotaFeatureKey = "listings" | "featured";
 
 type PackageRow = {
   id: string;
@@ -192,4 +204,44 @@ export async function getUserEntitlements(
     null,
     true
   );
-    }
+}
+
+// Cek satu fitur boolean tertentu dari entitlement yang SUDAH diambil.
+// Operasi murni (tidak query DB lagi) — panggil getUserEntitlements() sekali
+// di server component/action, lalu pakai hasilnya untuk semua pengecekan.
+export function canUserAccess(
+  entitlements: UserEntitlements,
+  feature: BooleanFeatureKey
+): boolean {
+  if (!entitlements.package) return false;
+
+  switch (feature) {
+    case "homepagePriority":
+      return entitlements.package.homepagePriority;
+    case "categoryPriority":
+      return entitlements.package.categoryPriority;
+    case "sellerBadge":
+      return entitlements.package.sellerBadge;
+    case "brandProfile":
+      return entitlements.package.brandProfile;
+    case "prioritySupport":
+      return entitlements.package.prioritySupport;
+    case "analytics":
+      return (
+        entitlements.package.analyticsLevel !== "none" &&
+        Boolean(entitlements.package.analyticsLevel)
+      );
+    default:
+      return false;
+  }
+}
+
+// Ambil limit/usage/remaining untuk satu fitur berbasis kuota, dari
+// entitlement yang sudah diambil. Sama seperti canUserAccess — tidak
+// query DB lagi.
+export function getFeatureLimit(
+  entitlements: UserEntitlements,
+  feature: QuotaFeatureKey
+): { limit: number; used: number; remaining: number } {
+  return entitlements.quotas[feature];
+      }
