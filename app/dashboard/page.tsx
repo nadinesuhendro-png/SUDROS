@@ -1,15 +1,22 @@
 // PATH: app/dashboard/page.tsx
-// AKSI: UPDATE FILE (dark mode retrofit)
+// AKSI: GANTI SELURUH ISI FILE (tambah Package Card dari Entitlement Engine)
 
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/(auth)/actions";
+import { getUserEntitlements } from "@/lib/entitlements/service";
 
 type Profile = {
   username: string;
   role: string;
 };
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("id-ID", {
+    dateStyle: "long",
+  });
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -28,11 +35,12 @@ export default async function DashboardPage() {
     .select("*", { count: "exact", head: true })
     .eq("owner_id", user!.id);
 
-  const { count: activeListingCount } = await supabase
-    .from("listings")
-    .select("*", { count: "exact", head: true })
-    .eq("owner_id", user!.id)
-    .eq("status", "active");
+  const entitlements = await getUserEntitlements(user!.id);
+  const listingQuota = entitlements.quotas.listings;
+  const quotaPercent =
+    listingQuota.limit > 0
+      ? Math.min(100, Math.round((listingQuota.used / listingQuota.limit) * 100))
+      : 0;
 
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-4 p-6">
@@ -66,10 +74,70 @@ export default async function DashboardPage() {
         </div>
         <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-4">
           <p className="text-2xl font-bold" style={{ color: "var(--primary)" }}>
-            {activeListingCount || 0}
+            {listingQuota.used}
           </p>
           <p className="text-xs text-[var(--muted-foreground)]">Listing Aktif</p>
         </div>
+      </div>
+
+      {/* Package Card */}
+      <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-4">
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted-foreground)]">
+            Paket Anda
+          </p>
+          {entitlements.isFreeTier ? (
+            <span className="rounded-full bg-[var(--muted)] px-2 py-0.5 text-xs font-medium text-[var(--muted-foreground)]">
+              Free
+            </span>
+          ) : (
+            <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-950/40 dark:text-green-400">
+              Aktif
+            </span>
+          )}
+        </div>
+
+        <p className="text-base font-semibold text-[var(--card-foreground)]">
+          {entitlements.package?.name || "Free"}
+        </p>
+
+        {!entitlements.isFreeTier && entitlements.expiresAt ? (
+          <p className="mb-3 text-xs text-[var(--muted-foreground)]">
+            Berlaku sampai {formatDate(entitlements.expiresAt)}
+            {entitlements.daysRemaining !== null &&
+            entitlements.daysRemaining <= 3
+              ? ` (${entitlements.daysRemaining} hari lagi)`
+              : ""}
+          </p>
+        ) : (
+          <p className="mb-3 text-xs text-[var(--muted-foreground)]">
+            Upgrade paket untuk menambah kuota listing dan fitur lainnya.
+          </p>
+        )}
+
+        <div className="mb-1 flex items-center justify-between text-xs text-[var(--muted-foreground)]">
+          <span>Listing</span>
+          <span>
+            {listingQuota.used} / {listingQuota.limit}
+          </span>
+        </div>
+        <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--muted)]">
+          <div
+            className="h-full rounded-full"
+            style={{
+              width: `${quotaPercent}%`,
+              backgroundColor:
+                quotaPercent >= 100 ? "var(--destructive)" : "var(--primary)",
+            }}
+          />
+        </div>
+
+        <Link
+          href="/pricing"
+          className="mt-3 block rounded-[var(--radius)] border border-[var(--border)] py-2 text-center text-xs font-medium text-[var(--card-foreground)]"
+        >
+          {entitlements.isFreeTier ? "Lihat Paket" : "Kelola Paket"}
+        </Link>
       </div>
 
       {/* CTA utama */}
