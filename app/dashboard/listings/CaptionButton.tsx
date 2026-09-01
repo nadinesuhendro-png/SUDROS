@@ -1,5 +1,5 @@
 // PATH: app/dashboard/listings/CaptionButton.tsx
-// AKSI: BUAT FILE BARU
+// AKSI: GANTI SELURUH ISI FILE (retrofit dark mode)
 
 "use client";
 
@@ -59,23 +59,25 @@ export default function CaptionButton({
         type="button"
         onClick={handleGenerate}
         disabled={loading}
-        className="w-full rounded-[var(--radius)] border border-gray-300 px-3 py-1 text-xs font-medium disabled:opacity-60"
+        className="w-full rounded-[var(--radius)] border border-[var(--border)] px-3 py-1 text-xs font-medium disabled:opacity-60"
         style={{ color: "var(--primary)" }}
       >
         {loading ? "✨ Membuat Caption..." : "✨ Buat Caption Promosi"}
       </button>
 
-      {error ? <p className="text-xs text-red-600">{error}</p> : null}
+      {error ? (
+        <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
+      ) : null}
 
       {caption ? (
-        <div className="flex flex-col gap-2 rounded-[var(--radius)] border border-blue-200 bg-blue-50 p-3 text-sm">
-          <p className="text-xs font-medium text-blue-700">Caption Promosi</p>
-          <p className="whitespace-pre-wrap text-sm">{caption}</p>
+        <div className="flex flex-col gap-2 rounded-[var(--radius)] border border-blue-200 bg-blue-50 p-3 text-sm dark:border-blue-900/50 dark:bg-blue-950/30">
+          <p className="text-xs font-medium text-blue-700 dark:text-blue-400">Caption Promosi</p>
+          <p className="whitespace-pre-wrap text-sm text-[var(--foreground)]">{caption}</p>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={handleCopy}
-              className="rounded-[var(--radius)] border border-gray-300 px-3 py-1 text-xs font-medium"
+              className="rounded-[var(--radius)] border border-[var(--border)] px-3 py-1 text-xs font-medium text-[var(--foreground)]"
             >
               {copied ? "✓ Disalin" : "Copy Caption"}
             </button>
@@ -91,4 +93,4 @@ export default function CaptionButton({
       ) : null}
     </div>
   );
-              }
+}
