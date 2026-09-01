@@ -1,5 +1,5 @@
 // PATH: app/dashboard/listings/[id]/edit/EditListingForm.tsx
-// AKSI: BUAT FILE BARU
+// AKSI: GANTI SELURUH ISI FILE (retrofit dark mode)
 
 "use client";
 
@@ -34,9 +34,9 @@ type ListingForEdit = {
 };
 
 const inputClassName =
-  "w-full rounded-[var(--radius)] border border-gray-300 px-4 py-2 text-sm";
+  "w-full rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--foreground)]";
 
-const labelClassName = "block text-sm font-medium text-left mb-1";
+const labelClassName = "block text-sm font-medium text-left mb-1 text-[var(--foreground)]";
 
 export default function EditListingForm({
   listing,
@@ -125,7 +125,7 @@ export default function EditListingForm({
       </h1>
 
       {errorMessage || localError ? (
-        <div className="rounded-[var(--radius)] bg-red-50 px-4 py-3 text-sm text-red-600">
+        <div className="rounded-[var(--radius)] bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-950/30 dark:text-red-400">
           {localError || errorMessage}
         </div>
       ) : null}
@@ -279,4 +279,4 @@ export default function EditListingForm({
       </form>
     </main>
   );
-      }
+            }
