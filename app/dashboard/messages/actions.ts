@@ -1,5 +1,5 @@
 // PATH: app/dashboard/messages/actions.ts
-// AKSI: BUAT FILE BARU
+// AKSI: GANTI SELURUH ISI FILE (perbaikan query listing_id null)
 
 "use server";
 
@@ -25,13 +25,17 @@ export async function startConversation(formData: FormData) {
     return;
   }
 
-  const { data: existing } = await supabase
+  let existingQuery = supabase
     .from("conversations")
     .select("id")
     .eq("buyer_id", user.id)
-    .eq("seller_id", sellerId)
-    .eq(listingId ? "listing_id" : "listing_id", listingId)
-    .maybeSingle<{ id: string }>();
+    .eq("seller_id", sellerId);
+
+  existingQuery = listingId
+    ? existingQuery.eq("listing_id", listingId)
+    : existingQuery.is("listing_id", null);
+
+  const { data: existing } = await existingQuery.maybeSingle<{ id: string }>();
 
   if (existing) {
     redirect(`/dashboard/messages/${existing.id}`);
