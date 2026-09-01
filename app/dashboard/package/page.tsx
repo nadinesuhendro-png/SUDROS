@@ -1,5 +1,5 @@
 // PATH: app/dashboard/package/page.tsx
-// AKSI: GANTI SELURUH ISI FILE (refactor pakai FeatureGate)
+// AKSI: GANTI SELURUH ISI FILE (tampilkan pesan error dari redirect kuota habis)
 
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
@@ -42,7 +42,12 @@ function QuotaBar({
   );
 }
 
-export default async function PackageUsagePage() {
+export default async function PackageUsagePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -59,6 +64,12 @@ export default async function PackageUsagePage() {
       >
         Penggunaan Paket
       </h1>
+
+      {error ? (
+        <div className="rounded-[var(--radius)] bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-950/30 dark:text-red-400">
+          {error}
+        </div>
+      ) : null}
 
       <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-4">
         <div className="mb-2 flex items-center justify-between">
@@ -159,4 +170,4 @@ export default async function PackageUsagePage() {
       </Link>
     </main>
   );
-}
+        }
