@@ -1,10 +1,11 @@
 // PATH: lib/entitlements/service.ts
-// AKSI: BUAT FILE BARU
+// AKSI: GANTI SELURUH ISI FILE (fallback ke paket Free saat tidak ada langganan aktif)
 
 import { createClient } from "@/lib/supabase/server";
 
 export type UserEntitlements = {
   hasActivePackage: boolean;
+  isFreeTier: boolean;
   package: {
     id: string;
     name: string;
@@ -27,41 +28,84 @@ export type UserEntitlements = {
   canFeatureListing: boolean;
 };
 
-const EMPTY_ENTITLEMENTS: UserEntitlements = {
-  hasActivePackage: false,
-  package: null,
-  startedAt: null,
-  expiresAt: null,
-  daysRemaining: null,
-  quotas: {
-    listings: { limit: 0, used: 0, remaining: 0 },
-    featured: { limit: 0, used: 0, remaining: 0 },
-  },
-  canCreateListing: false,
-  canFeatureListing: false,
+type PackageRow = {
+  id: string;
+  name: string;
+  slug: string;
+  max_active_listings: number;
+  featured_limit: number;
+  analytics_level: string;
+  homepage_priority: boolean;
+  category_priority: boolean;
+  seller_badge: boolean;
+  brand_profile: boolean;
+  priority_support: boolean;
 };
 
 type ActivePackageRow = {
-  expires_at: string;
   started_at: string;
-  advertising_packages: {
-    id: string;
-    name: string;
-    slug: string;
-    max_active_listings: number;
-    featured_limit: number;
-    analytics_level: string;
-    homepage_priority: boolean;
-    category_priority: boolean;
-    seller_badge: boolean;
-    brand_profile: boolean;
-    priority_support: boolean;
-  } | null;
+  expires_at: string;
+  advertising_packages: PackageRow | null;
 };
+
+function buildQuotaEntitlements(
+  pkg: PackageRow,
+  listingsUsed: number,
+  featuredUsed: number,
+  startedAt: string | null,
+  expiresAt: string | null,
+  isFreeTier: boolean
+): UserEntitlements {
+  const listingsRemaining = Math.max(0, pkg.max_active_listings - listingsUsed);
+  const featuredRemaining = Math.max(0, pkg.featured_limit - featuredUsed);
+
+  let daysRemaining: number | null = null;
+  if (expiresAt) {
+    const expiresAtMs = new Date(expiresAt).getTime();
+    daysRemaining = Math.max(
+      0,
+      Math.ceil((expiresAtMs - Date.now()) / (1000 * 60 * 60 * 24))
+    );
+  }
+
+  return {
+    hasActivePackage: !isFreeTier,
+    isFreeTier,
+    package: {
+      id: pkg.id,
+      name: pkg.name,
+      slug: pkg.slug,
+      analyticsLevel: pkg.analytics_level,
+      homepagePriority: pkg.homepage_priority,
+      categoryPriority: pkg.category_priority,
+      sellerBadge: pkg.seller_badge,
+      brandProfile: pkg.brand_profile,
+      prioritySupport: pkg.priority_support,
+    },
+    startedAt,
+    expiresAt,
+    daysRemaining,
+    quotas: {
+      listings: {
+        limit: pkg.max_active_listings,
+        used: listingsUsed,
+        remaining: listingsRemaining,
+      },
+      featured: {
+        limit: pkg.featured_limit,
+        used: featuredUsed,
+        remaining: featuredRemaining,
+      },
+    },
+    canCreateListing: listingsRemaining > 0,
+    canFeatureListing: featuredRemaining > 0,
+  };
+}
 
 // Sumber kebenaran tunggal untuk hak akses user. Selalu panggil ini di
 // server (server component atau server action) — jangan pernah percaya
-// hasil entitlement dari client.
+// hasil entitlement dari client. Jika user tidak punya langganan
+// berbayar aktif, otomatis fallback ke limit paket "free".
 export async function getUserEntitlements(
   userId: string
 ): Promise<UserEntitlements> {
@@ -79,12 +123,6 @@ export async function getUserEntitlements(
     .limit(1)
     .maybeSingle<ActivePackageRow>();
 
-  if (!activePackage || !activePackage.advertising_packages) {
-    return EMPTY_ENTITLEMENTS;
-  }
-
-  const pkg = activePackage.advertising_packages;
-
   const { count: activeListingCount } = await supabase
     .from("listings")
     .select("id", { count: "exact", head: true })
@@ -100,44 +138,58 @@ export async function getUserEntitlements(
   const listingsUsed = activeListingCount || 0;
   const featuredUsed = featuredCount || 0;
 
-  const listingsRemaining = Math.max(0, pkg.max_active_listings - listingsUsed);
-  const featuredRemaining = Math.max(0, pkg.featured_limit - featuredUsed);
+  if (activePackage && activePackage.advertising_packages) {
+    return buildQuotaEntitlements(
+      activePackage.advertising_packages,
+      listingsUsed,
+      featuredUsed,
+      activePackage.started_at,
+      activePackage.expires_at,
+      false
+    );
+  }
 
-  const expiresAtMs = new Date(activePackage.expires_at).getTime();
-  const daysRemaining = Math.max(
-    0,
-    Math.ceil((expiresAtMs - Date.now()) / (1000 * 60 * 60 * 24))
+  // Tidak ada langganan berbayar aktif — fallback ke paket Free
+  const { data: freePackage } = await supabase
+    .from("advertising_packages")
+    .select(
+      "id, name, slug, max_active_listings, featured_limit, analytics_level, homepage_priority, category_priority, seller_badge, brand_profile, priority_support"
+    )
+    .eq("slug", "free")
+    .eq("is_active", true)
+    .maybeSingle<PackageRow>();
+
+  if (!freePackage) {
+    // Fallback darurat kalau paket Free tidak ditemukan/dinonaktifkan admin —
+    // jangan biarkan seluruh dashboard error, tapi tetap tidak bisa apa-apa
+    return buildQuotaEntitlements(
+      {
+        id: "",
+        name: "Free",
+        slug: "free",
+        max_active_listings: 0,
+        featured_limit: 0,
+        analytics_level: "none",
+        homepage_priority: false,
+        category_priority: false,
+        seller_badge: false,
+        brand_profile: false,
+        priority_support: false,
+      },
+      listingsUsed,
+      featuredUsed,
+      null,
+      null,
+      true
+    );
+  }
+
+  return buildQuotaEntitlements(
+    freePackage,
+    listingsUsed,
+    featuredUsed,
+    null,
+    null,
+    true
   );
-
-  return {
-    hasActivePackage: true,
-    package: {
-      id: pkg.id,
-      name: pkg.name,
-      slug: pkg.slug,
-      analyticsLevel: pkg.analytics_level,
-      homepagePriority: pkg.homepage_priority,
-      categoryPriority: pkg.category_priority,
-      sellerBadge: pkg.seller_badge,
-      brandProfile: pkg.brand_profile,
-      prioritySupport: pkg.priority_support,
-    },
-    startedAt: activePackage.started_at,
-    expiresAt: activePackage.expires_at,
-    daysRemaining,
-    quotas: {
-      listings: {
-        limit: pkg.max_active_listings,
-        used: listingsUsed,
-        remaining: listingsRemaining,
-      },
-      featured: {
-        limit: pkg.featured_limit,
-        used: featuredUsed,
-        remaining: featuredRemaining,
-      },
-    },
-    canCreateListing: listingsRemaining > 0,
-    canFeatureListing: featuredRemaining > 0,
-  };
     }
