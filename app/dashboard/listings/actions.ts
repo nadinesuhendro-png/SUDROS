@@ -1,5 +1,5 @@
 // PATH: app/dashboard/listings/actions.ts
-// AKSI: GANTI SELURUH ISI FILE (tambah enforcement quota dari Entitlement Engine)
+// AKSI: GANTI SELURUH ISI FILE (redirect ke halaman Paket, bukan balik ke form, kalau kuota habis)
 
 "use server";
 
@@ -31,12 +31,15 @@ export async function createListing(input: CreateListingInput) {
     redirect("/login");
   }
 
-  // Enforcement wajib di server — jangan hanya andalkan UI menyembunyikan tombol
+  // Enforcement wajib di server — lapisan kedua setelah cek di halaman
+  // /new (jaga-jaga kalau ada yang langsung memanggil action ini tanpa
+  // lewat halaman, misal lewat devtools). Kalau kuota habis, arahkan
+  // ke halaman Paket, bukan balik ke form.
   const entitlements = await getUserEntitlements(user.id);
 
   if (!entitlements.canCreateListing) {
     redirect(
-      `/dashboard/listings/new?error=${encodeURIComponent(
+      `/dashboard/package?error=${encodeURIComponent(
         "Kuota listing aktif Anda sudah habis. Upgrade paket untuk menambah kuota."
       )}`
     );
@@ -102,7 +105,6 @@ export async function createListing(input: CreateListingInput) {
     await supabase.from("listing_images").insert(rows);
   }
 
-  // Trigger Moderation Agent di background — tidak menunda redirect ke user
   after(() => runModerationAgentForListing(listing.id));
 
   redirect("/dashboard");
@@ -254,4 +256,4 @@ export async function deleteListingImage(formData: FormData) {
   await supabase.from("listing_images").delete().eq("id", imageId);
 
   redirect(`/dashboard/listings/${listingId}/edit`);
-                                                                 }
+    }
