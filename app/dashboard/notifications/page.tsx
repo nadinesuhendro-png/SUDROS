@@ -1,8 +1,8 @@
 // PATH: app/dashboard/notifications/page.tsx
-// AKSI: UPDATE FILE (dark mode retrofit)
+// AKSI: GANTI SELURUH ISI FILE (tambah tombol mark-as-read per item)
 
 import { createClient } from "@/lib/supabase/server";
-import { markAllAsRead } from "./actions";
+import { markAllAsRead, markAsRead } from "./actions";
 
 type NotificationRow = {
   id: string;
@@ -63,14 +63,28 @@ export default async function NotificationsPage() {
         {(notifications || []).map((n) => (
           <div
             key={n.id}
-            className="rounded-[var(--radius)] border p-3 text-sm"
+            className="flex flex-col gap-1 rounded-[var(--radius)] border p-3 text-sm"
             style={
               n.is_read
                 ? { borderColor: "var(--border)", backgroundColor: "var(--card)" }
                 : { borderColor: "var(--primary)", backgroundColor: "var(--muted)" }
             }
           >
-            <p className="font-medium text-[var(--card-foreground)]">{n.title}</p>
+            <div className="flex items-start justify-between gap-2">
+              <p className="font-medium text-[var(--card-foreground)]">{n.title}</p>
+              {!n.is_read ? (
+                <form action={markAsRead}>
+                  <input type="hidden" name="id" value={n.id} />
+                  <button
+                    type="submit"
+                    className="flex-shrink-0 text-xs font-medium"
+                    style={{ color: "var(--primary)" }}
+                  >
+                    Tandai dibaca
+                  </button>
+                </form>
+              ) : null}
+            </div>
             <p className="text-[var(--muted-foreground)]">{n.message}</p>
             <p className="mt-1 text-xs text-[var(--muted-foreground)]">
               {formatDate(n.created_at)}
