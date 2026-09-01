@@ -1,11 +1,12 @@
 // PATH: app/dashboard/listings/page.tsx
-// AKSI: UPDATE FILE (dark mode retrofit)
+// AKSI: GANTI SELURUH ISI FILE (pakai ListingStatusBadge reusable)
 
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { deleteListing } from "./actions";
 import CaptionButton from "./CaptionButton";
+import ListingStatusBadge from "@/components/ListingStatusBadge";
 
 export const maxDuration = 60;
 
@@ -27,39 +28,6 @@ function formatPrice(price: number) {
     currency: "IDR",
     maximumFractionDigits: 0,
   }).format(price);
-}
-
-function ReviewBadge({ listing }: { listing: MyListing }) {
-  if (listing.status === "rejected") {
-    return (
-      <span className="inline-flex w-fit items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-300">
-        Ditolak
-      </span>
-    );
-  }
-  if (listing.status === "suspended") {
-    return (
-      <span className="inline-flex w-fit items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-300">
-        Ditangguhkan
-      </span>
-    );
-  }
-  if (!listing.ai_moderation_checked_at || listing.status === "pending") {
-    return (
-      <span className="inline-flex w-fit items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-300">
-        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-        Sedang dalam peninjauan
-      </span>
-    );
-  }
-  if (listing.status === "active") {
-    return (
-      <span className="inline-flex w-fit items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-950 dark:text-green-300">
-        Aktif
-      </span>
-    );
-  }
-  return null;
 }
 
 export default async function MyListingsPage() {
@@ -142,7 +110,7 @@ export default async function MyListingsPage() {
                   <span className="text-xs text-[var(--muted-foreground)]">
                     👁 {listing.views_count} views • 💬 {listing.whatsapp_clicks_count} WA clicks
                   </span>
-                  <ReviewBadge listing={listing} />
+                  <ListingStatusBadge listing={listing} />
                 </div>
 
                 <div className="flex flex-col gap-2">
@@ -175,4 +143,4 @@ export default async function MyListingsPage() {
       </div>
     </main>
   );
-}
+  }
