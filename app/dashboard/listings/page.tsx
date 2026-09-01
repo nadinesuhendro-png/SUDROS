@@ -1,5 +1,5 @@
 // PATH: app/dashboard/listings/page.tsx
-// AKSI: GANTI SELURUH ISI FILE (pakai ListingStatusBadge reusable)
+// AKSI: GANTI SELURUH ISI FILE (pakai ListingStats reusable)
 
 import Image from "next/image";
 import Link from "next/link";
@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { deleteListing } from "./actions";
 import CaptionButton from "./CaptionButton";
 import ListingStatusBadge from "@/components/ListingStatusBadge";
+import ListingStats from "@/components/ListingStats";
 
 export const maxDuration = 60;
 
@@ -107,9 +108,10 @@ export default async function MyListingsPage() {
                   <span className="text-xs text-[var(--muted-foreground)]">
                     {listing.location_city}
                   </span>
-                  <span className="text-xs text-[var(--muted-foreground)]">
-                    👁 {listing.views_count} views • 💬 {listing.whatsapp_clicks_count} WA clicks
-                  </span>
+                  <ListingStats
+                    views={listing.views_count}
+                    whatsappClicks={listing.whatsapp_clicks_count}
+                  />
                   <ListingStatusBadge listing={listing} />
                 </div>
 
@@ -143,4 +145,4 @@ export default async function MyListingsPage() {
       </div>
     </main>
   );
-  }
+              }
