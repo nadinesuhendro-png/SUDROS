@@ -1,5 +1,5 @@
 // PATH: app/dashboard/listings/actions.ts
-// AKSI: GANTI SELURUH ISI FILE (tambah enforcement Terms Gate — lapisan kedua, tidak bisa dibypass)
+// AKSI: GANTI SELURUH ISI FILE (tangani pesan rate limit dari DB trigger)
 
 "use server";
 
@@ -32,7 +32,6 @@ export async function createListing(input: CreateListingInput) {
     redirect("/login");
   }
 
-  // Enforcement kuota — lapisan kedua setelah cek di halaman /new
   const entitlements = await getUserEntitlements(user.id);
 
   if (!entitlements.canCreateListing) {
@@ -43,9 +42,6 @@ export async function createListing(input: CreateListingInput) {
     );
   }
 
-  // Enforcement Terms Gate — lapisan kedua, WAJIB, tidak boleh hanya
-  // mengandalkan gate di halaman /new. FAIL CLOSED kalau versi aktif
-  // tidak ditemukan.
   const activeTerms = await getActiveTermsVersion();
 
   if (!activeTerms) {
@@ -105,9 +101,12 @@ export async function createListing(input: CreateListingInput) {
     .single<{ id: string }>();
 
   if (insertError || !listing) {
+    const isRateLimit = insertError?.message.includes("RATE_LIMIT");
     redirect(
       `/dashboard/listings/new?error=${encodeURIComponent(
-        insertError?.message || "Gagal membuat listing"
+        isRateLimit
+          ? "Anda membuat listing terlalu cepat. Silakan tunggu beberapa menit sebelum membuat listing baru."
+          : insertError?.message || "Gagal membuat listing"
       )}`
     );
   }
