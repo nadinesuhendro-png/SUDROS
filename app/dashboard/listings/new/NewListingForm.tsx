@@ -1,5 +1,5 @@
 // PATH: app/dashboard/listings/new/NewListingForm.tsx
-// AKSI: GANTI SELURUH ISI FILE (retrofit dark mode)
+// AKSI: GANTI SELURUH ISI FILE (tambah checkbox acknowledgement sebelum submit)
 
 "use client";
 
@@ -43,6 +43,7 @@ export default function NewListingForm({
     description: string;
   } | null>(null);
   const [aiError, setAiError] = useState("");
+  const [acknowledged, setAcknowledged] = useState(false);
 
   async function handleAskAI() {
     setAiLoading(true);
@@ -321,9 +322,22 @@ export default function NewListingForm({
             />
           </div>
 
+          <label className="flex items-start gap-2 text-xs text-[var(--foreground)]">
+            <input
+              type="checkbox"
+              checked={acknowledged}
+              onChange={(e) => setAcknowledged(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span>
+              Saya menyatakan informasi listing ini benar dan sesuai
+              ketentuan SUDROS.
+            </span>
+          </label>
+
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || !acknowledged}
             className="rounded-[var(--radius)] px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
             style={{ backgroundColor: "var(--primary)" }}
           >
@@ -333,4 +347,4 @@ export default function NewListingForm({
       </div>
     </main>
   );
-                }
+          }
