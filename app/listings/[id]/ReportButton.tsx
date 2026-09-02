@@ -1,5 +1,5 @@
 // PATH: app/listings/[id]/ReportButton.tsx
-// AKSI: BUAT FILE BARU
+// AKSI: GANTI SELURUH ISI FILE (tangani pesan rate limit)
 
 "use client";
 
@@ -15,6 +15,13 @@ const reasons = [
   "Duplikat",
   "Lainnya",
 ];
+
+function friendlyErrorMessage(rawMessage: string) {
+  if (rawMessage.includes("RATE_LIMIT")) {
+    return "Anda mengirim laporan terlalu sering. Silakan coba lagi beberapa saat lagi.";
+  }
+  return "Gagal mengirim laporan";
+}
 
 export default function ReportButton({ listingId }: { listingId: string }) {
   const [open, setOpen] = useState(false);
@@ -52,7 +59,7 @@ export default function ReportButton({ listingId }: { listingId: string }) {
       });
 
       if (insertError) {
-        throw new Error(insertError.message);
+        throw new Error(friendlyErrorMessage(insertError.message));
       }
 
       setDone(true);
@@ -129,4 +136,4 @@ export default function ReportButton({ listingId }: { listingId: string }) {
       </div>
     </div>
   );
-          }
+}
