@@ -1,5 +1,5 @@
 // PATH: app/admin/AdminNav.tsx
-// AKSI: UPDATE FILE (tambah tab Marketing untuk SUDROS Marketing Center)
+// AKSI: GANTI SELURUH ISI FILE (tambah tab Legal untuk Terms & Conditions)
 
 "use client";
 
@@ -16,6 +16,7 @@ const navItems = [
   { href: "/admin/ai-usage", label: "AI Usage" },
   { href: "/admin/agents", label: "Agents" },
   { href: "/admin/marketing", label: "Marketing" },
+  { href: "/admin/terms", label: "Legal" },
 ];
 
 export default function AdminNav() {
