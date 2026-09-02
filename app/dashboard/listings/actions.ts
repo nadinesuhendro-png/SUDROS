@@ -1,5 +1,5 @@
 // PATH: app/dashboard/listings/actions.ts
-// AKSI: GANTI SELURUH ISI FILE (redirect ke halaman Paket, bukan balik ke form, kalau kuota habis)
+// AKSI: GANTI SELURUH ISI FILE (tambah enforcement Terms Gate — lapisan kedua, tidak bisa dibypass)
 
 "use server";
 
@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { runModerationAgentForListing } from "@/lib/agents/moderation-agent";
 import { getUserEntitlements } from "@/lib/entitlements/service";
+import { getActiveTermsVersion, hasUserAgreedToActiveTerms } from "@/lib/terms/service";
 
 type CreateListingInput = {
   id: string;
@@ -31,10 +32,7 @@ export async function createListing(input: CreateListingInput) {
     redirect("/login");
   }
 
-  // Enforcement wajib di server — lapisan kedua setelah cek di halaman
-  // /new (jaga-jaga kalau ada yang langsung memanggil action ini tanpa
-  // lewat halaman, misal lewat devtools). Kalau kuota habis, arahkan
-  // ke halaman Paket, bukan balik ke form.
+  // Enforcement kuota — lapisan kedua setelah cek di halaman /new
   const entitlements = await getUserEntitlements(user.id);
 
   if (!entitlements.canCreateListing) {
@@ -43,6 +41,25 @@ export async function createListing(input: CreateListingInput) {
         "Kuota listing aktif Anda sudah habis. Upgrade paket untuk menambah kuota."
       )}`
     );
+  }
+
+  // Enforcement Terms Gate — lapisan kedua, WAJIB, tidak boleh hanya
+  // mengandalkan gate di halaman /new. FAIL CLOSED kalau versi aktif
+  // tidak ditemukan.
+  const activeTerms = await getActiveTermsVersion();
+
+  if (!activeTerms) {
+    redirect(
+      `/dashboard/listings/new?error=${encodeURIComponent(
+        "Terjadi masalah saat memverifikasi Syarat & Ketentuan. Silakan coba lagi."
+      )}`
+    );
+  }
+
+  const hasAgreed = await hasUserAgreedToActiveTerms(user.id, activeTerms.id);
+
+  if (!hasAgreed) {
+    redirect("/dashboard/listings/new");
   }
 
   const title = input.title.trim();
@@ -256,4 +273,4 @@ export async function deleteListingImage(formData: FormData) {
   await supabase.from("listing_images").delete().eq("id", imageId);
 
   redirect(`/dashboard/listings/${listingId}/edit`);
-    }
+}
