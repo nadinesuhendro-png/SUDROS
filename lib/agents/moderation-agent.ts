@@ -1,5 +1,5 @@
 // PATH: lib/agents/moderation-agent.ts
-// AKSI: UPDATE FILE (pisahkan logic analisis 1 listing, dipakai untuk trigger langsung & batch cron)
+// AKSI: GANTI SELURUH ISI FILE (tambah alert admin saat gagal 3x berturut-turut)
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { callGemini } from "@/lib/ai/gemini-provider";
@@ -10,6 +10,8 @@ import type { ModerationResult } from "@/app/admin/listings/ai-actions";
 const AGENT_NAME = "moderation";
 const TASK_NAME = "moderation.analyze_listing";
 const BATCH_LIMIT = 10;
+const FAILURE_ALERT_THRESHOLD = 3;
+const FAILURE_ALERT_COOLDOWN_MS = 2 * 60 * 60 * 1000; // 2 jam, cegah spam notifikasi
 
 type ListingForModeration = {
   id: string;
@@ -22,6 +24,60 @@ type ListingForModeration = {
 function hashInput(task: string, input: unknown): string {
   const raw = task + JSON.stringify(input);
   return crypto.createHash("sha256").update(raw).digest("hex");
+}
+
+// Kalau moderasi gagal berturut-turut (bukan cuma sesekali), admin perlu
+// tahu — karena artinya listing baru berpotensi nyangkut "pending" tanpa
+// pernah ditinjau otomatis. Cooldown 2 jam supaya tidak spam notifikasi
+// tiap kali ada kegagalan baru selama masalahnya belum diperbaiki.
+async function checkAndAlertOnRepeatedFailures(
+  supabase: ReturnType<typeof createAdminClient>
+) {
+  const { data: recentTasks } = await supabase
+    .from("agent_tasks")
+    .select("status")
+    .eq("agent_name", AGENT_NAME)
+    .order("started_at", { ascending: false })
+    .limit(FAILURE_ALERT_THRESHOLD);
+
+  if (!recentTasks || recentTasks.length < FAILURE_ALERT_THRESHOLD) {
+    return;
+  }
+
+  const allFailed = recentTasks.every((t) => t.status === "failed");
+  if (!allFailed) {
+    return;
+  }
+
+  const cooldownStart = new Date(
+    Date.now() - FAILURE_ALERT_COOLDOWN_MS
+  ).toISOString();
+
+  const { data: existingAlert } = await supabase
+    .from("notifications")
+    .select("id")
+    .eq("title", "⚠️ Moderation Agent bermasalah")
+    .gte("created_at", cooldownStart)
+    .limit(1)
+    .maybeSingle();
+
+  if (existingAlert) {
+    return;
+  }
+
+  const { data: admins } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("role", "admin");
+
+  for (const admin of admins || []) {
+    await supabase.from("notifications").insert({
+      recipient_user_id: admin.id,
+      title: "⚠️ Moderation Agent bermasalah",
+      message: `${FAILURE_ALERT_THRESHOLD} percobaan moderasi listing terakhir gagal berturut-turut. Listing baru berpotensi tertahan di status pending tanpa ditinjau otomatis. Cek halaman Agents dan tinjau listing pending secara manual sementara.`,
+      link: "/admin/agents",
+    });
+  }
 }
 
 async function analyzeAndSaveListing(
@@ -130,6 +186,8 @@ async function analyzeAndSaveListing(
         .eq("id", taskRow.id);
     }
 
+    await checkAndAlertOnRepeatedFailures(supabase);
+
     return { ok: false, error: errorMessage };
   }
 }
@@ -179,4 +237,4 @@ export async function runModerationAgent() {
   }
 
   return { ok: errors.length === 0, processed, errors };
-}
+            }
