@@ -18,6 +18,7 @@
 import { useState } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import L from "leaflet";
+import type { LeafletMouseEvent } from "leaflet";
 
 type LocationPickerProps = {
   latitude: number | null;
@@ -39,7 +40,7 @@ const markerIcon = L.divIcon({
 
 function ClickHandler({ onSelect }: { onSelect: (lat: number, lng: number) => void }) {
   useMapEvents({
-    click(e) {
+    click(e: LeafletMouseEvent) {
       onSelect(e.latlng.lat, e.latlng.lng);
     },
   });
@@ -119,4 +120,3 @@ export default function LocationPicker({ latitude, longitude, onChange }: Locati
     </div>
   );
 }
-
