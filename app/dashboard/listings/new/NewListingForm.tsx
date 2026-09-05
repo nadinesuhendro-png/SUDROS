@@ -1,12 +1,20 @@
 // PATH: app/dashboard/listings/new/NewListingForm.tsx
-// AKSI: GANTI SELURUH ISI FILE (tambah checkbox acknowledgement sebelum submit)
+// AKSI: GANTI SELURUH ISI FILE (tambah pin lokasi via LocationPicker)
 
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
 import { createListing } from "@/app/dashboard/listings/actions";
 import { generateListingContent } from "@/app/dashboard/listings/ai-actions";
+
+const LocationPicker = dynamic(() => import("@/components/LocationPicker"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-64 w-full animate-pulse rounded-[var(--radius)] border border-[var(--border)] bg-[var(--muted)]" />
+  ),
+});
 
 type Category = {
   id: string;
@@ -44,6 +52,9 @@ export default function NewListingForm({
   } | null>(null);
   const [aiError, setAiError] = useState("");
   const [acknowledged, setAcknowledged] = useState(false);
+
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
 
   async function handleAskAI() {
     setAiLoading(true);
@@ -138,6 +149,8 @@ export default function NewListingForm({
         locationCity,
         locationArea,
         imageUrls,
+        latitude,
+        longitude,
       });
     } catch (err) {
       setLocalError(
@@ -183,7 +196,7 @@ export default function NewListingForm({
                 className="text-xs font-medium disabled:opacity-60"
                 style={{ color: "var(--primary)" }}
               >
-                {aiLoading ? "Memproses..." : "✨ Bantu AI"}
+                {aiLoading ? "Memproses..." : "Bantu AI"}
               </button>
             </div>
             <input
@@ -309,6 +322,18 @@ export default function NewListingForm({
           </div>
 
           <div>
+            <label className={labelClassName}>Titik Lokasi di Peta</label>
+            <LocationPicker
+              latitude={latitude}
+              longitude={longitude}
+              onChange={(lat, lng) => {
+                setLatitude(lat);
+                setLongitude(lng);
+              }}
+            />
+          </div>
+
+          <div>
             <label className={labelClassName} htmlFor="images">
               Foto
             </label>
@@ -347,4 +372,4 @@ export default function NewListingForm({
       </div>
     </main>
   );
-          }
+}
