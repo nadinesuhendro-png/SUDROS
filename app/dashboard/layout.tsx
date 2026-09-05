@@ -1,5 +1,5 @@
 // PATH: app/dashboard/layout.tsx
-// AKSI: UPDATE FILE (tambah header slim berisi ThemeToggle di atas semua halaman dashboard)
+// AKSI: GANTI SELURUH ISI FILE (sisakan ThemeToggle bar cuma di mobile, tambah padding kiri untuk sidebar desktop)
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -28,9 +28,9 @@ export default async function DashboardLayout({
     .eq("is_read", false);
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen pb-20 md:pb-6 md:pl-60">
       <div
-        className="flex justify-end border-b px-4 py-2"
+        className="flex justify-end border-b px-4 py-2 md:hidden"
         style={{ borderColor: "var(--border)" }}
       >
         <ThemeToggle />
