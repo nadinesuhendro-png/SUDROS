@@ -3,6 +3,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { Plus, ClipboardList, CreditCard } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/(auth)/actions";
 import { getUserEntitlements } from "@/lib/entitlements/service";
@@ -149,7 +150,7 @@ export default async function DashboardPage() {
             className="flex items-center justify-center gap-2 rounded-[var(--radius)] py-4 text-sm font-semibold text-white"
             style={{ backgroundColor: "var(--primary)" }}
           >
-            <IconPlus className="h-4 w-4" />
+            <Plus className="h-4 w-4" />
             Buat Listing Baru
           </Link>
         </div>
@@ -160,7 +161,7 @@ export default async function DashboardPage() {
             href="/dashboard/listings"
             className="flex flex-col gap-1 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-4 text-sm font-medium text-[var(--card-foreground)]"
           >
-            <IconClipboardList className="h-5 w-5" style={{ color: "var(--primary)" }} />
+            <ClipboardList className="h-5 w-5" style={{ color: "var(--primary)" }} />
             Listing Saya
             <span className="text-xs font-normal text-[var(--muted-foreground)]">
               Kelola listing kamu
@@ -170,7 +171,7 @@ export default async function DashboardPage() {
             href="/dashboard/payments"
             className="flex flex-col gap-1 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-4 text-sm font-medium text-[var(--card-foreground)]"
           >
-            <IconCreditCard className="h-5 w-5" style={{ color: "var(--primary)" }} />
+            <CreditCard className="h-5 w-5" style={{ color: "var(--primary)" }} />
             Riwayat Pembayaran
             <span className="text-xs font-normal text-[var(--muted-foreground)]">
               Cek status paket iklan
@@ -192,43 +193,5 @@ export default async function DashboardPage() {
         </button>
       </form>
     </main>
-  );
-}
-
-function IconPlus({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M12 5v14M5 12h14" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconClipboardList({
-  className,
-  style,
-}: {
-  className?: string;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="6" y="4" width="12" height="17" rx="2" />
-      <path d="M9 4V3a1 1 0 011-1h4a1 1 0 011 1v1M9 10h6M9 14h6" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconCreditCard({
-  className,
-  style,
-}: {
-  className?: string;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="3" y="6" width="18" height="12" rx="2" />
-      <path d="M3 10h18" />
-    </svg>
   );
 }
