@@ -14,12 +14,16 @@ export default function ListingDistanceBadge({
   longitude: number | null;
 }) {
   const [distanceKm, setDistanceKm] = useState<number | null>(null);
+  const [buyerCoords, setBuyerCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   if (latitude === null || longitude === null) {
     return null;
   }
+
+  const lat = latitude;
+  const lng = longitude;
 
   function handleCheckDistance() {
     if (!navigator.geolocation) {
@@ -32,8 +36,9 @@ export default function ListingDistanceBadge({
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        setBuyerCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setDistanceKm(
-          calculateDistanceKm(pos.coords.latitude, pos.coords.longitude, latitude, longitude)
+          calculateDistanceKm(pos.coords.latitude, pos.coords.longitude, lat, lng)
         );
         setLoading(false);
       },
@@ -44,14 +49,14 @@ export default function ListingDistanceBadge({
     );
   }
 
-  if (distanceKm !== null) {
+  if (distanceKm !== null && buyerCoords) {
     return (
       <div className="flex items-center justify-between rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] px-4 py-3 text-sm">
         <span className="font-medium" style={{ color: "var(--primary)" }}>
           {formatDistance(distanceKm)}
         </span>
         <a
-          href={buildDirectionsUrl(0, 0, latitude, longitude).replace("origin=0,0", "")}
+          href={buildDirectionsUrl(buyerCoords.lat, buyerCoords.lng, lat, lng)}
           target="_blank"
           rel="noopener noreferrer"
           className="text-xs underline text-[var(--muted-foreground)]"
