@@ -1,5 +1,5 @@
 // PATH: app/dashboard/DashboardNav.tsx
-// AKSI: GANTI SELURUH ISI FILE (jadi sidebar di desktop, tetap bottom nav di mobile)
+// AKSI: GANTI SELURUH ISI FILE (hapus ThemeToggle dari sidebar, pindah ke halaman Profil)
 
 "use client";
 
@@ -7,7 +7,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Compass, ClipboardList, Heart, Bell, User } from "lucide-react";
-import ThemeToggle from "@/components/ThemeToggle";
 
 type NavItem = {
   href: string;
@@ -79,10 +78,6 @@ export default function DashboardNav({
             );
           })}
         </nav>
-
-        <div className="px-5 py-4">
-          <ThemeToggle />
-        </div>
       </aside>
 
       {/* Bottom nav mobile */}
