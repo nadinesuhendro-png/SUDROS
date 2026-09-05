@@ -61,7 +61,7 @@ export default async function DashboardPage() {
           width={80}
           height={50}
           priority
-          className="h-auto w-16 md:w-20"
+          className="h-auto w-16 md:hidden"
         />
       </div>
 
