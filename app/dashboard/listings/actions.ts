@@ -1,5 +1,5 @@
 // PATH: app/dashboard/listings/actions.ts
-// AKSI: GANTI SELURUH ISI FILE (tangani pesan rate limit dari DB trigger)
+// AKSI: GANTI SELURUH ISI FILE (terima & simpan latitude/longitude dari pin lokasi)
 
 "use server";
 
@@ -19,6 +19,8 @@ type CreateListingInput = {
   locationCity: string;
   locationArea: string;
   imageUrls: string[];
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export async function createListing(input: CreateListingInput) {
@@ -85,6 +87,12 @@ export async function createListing(input: CreateListingInput) {
     );
   }
 
+  const hasValidLatLng =
+    input.latitude !== null &&
+    input.longitude !== null &&
+    Number.isFinite(input.latitude) &&
+    Number.isFinite(input.longitude);
+
   const { data: listing, error: insertError } = await supabase
     .from("listings")
     .insert({
@@ -95,6 +103,8 @@ export async function createListing(input: CreateListingInput) {
       category_id: input.categoryId,
       location_city: locationCity,
       location_area: input.locationArea.trim() || null,
+      latitude: hasValidLatLng ? input.latitude : null,
+      longitude: hasValidLatLng ? input.longitude : null,
       owner_id: user.id,
     })
     .select("id")
