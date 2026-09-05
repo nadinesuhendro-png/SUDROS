@@ -40,7 +40,7 @@ export default function DashboardNav({
       {/* Sidebar desktop */}
       <aside
         className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col md:flex"
-        style={{ backgroundColor: "var(--primary-dark)" }}
+        style={{ backgroundColor: "#0b2a52" }}
       >
         <div className="flex items-center gap-2 px-5 py-6">
           <Image
