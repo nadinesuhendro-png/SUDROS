@@ -1,5 +1,5 @@
 // PATH: app/listings/[id]/page.tsx
-// AKSI: GANTI SELURUH ISI FILE (tambah tombol Kirim Pesan)
+// AKSI: GANTI SELURUH ISI FILE (tambah badge jarak dari ListingDistanceBadge)
 
 import Image from "next/image";
 import Link from "next/link";
@@ -10,6 +10,7 @@ import ListingGallery from "./ListingGallery";
 import ReportButton from "./ReportButton";
 import FavoriteButton from "./FavoriteButton";
 import WhatsAppButton from "./WhatsAppButton";
+import ListingDistanceBadge from "@/components/ListingDistanceBadge";
 import { startConversation } from "@/app/dashboard/messages/actions";
 
 type ListingDetail = {
@@ -19,6 +20,8 @@ type ListingDetail = {
   price: number;
   location_city: string;
   location_area: string | null;
+  latitude: number | null;
+  longitude: number | null;
   owner_id: string;
   listing_images: { image_url: string; sort_order: number }[];
   categories: { name: string } | null;
@@ -52,7 +55,7 @@ export default async function ListingDetailPage({
   const { data: listing } = await supabase
     .from("listings")
     .select(
-      "id, title, description, price, location_city, location_area, owner_id, listing_images(image_url, sort_order), categories(name), profiles(username, whatsapp, avatar_url)"
+      "id, title, description, price, location_city, location_area, latitude, longitude, owner_id, listing_images(image_url, sort_order), categories(name), profiles(username, whatsapp, avatar_url)"
     )
     .eq("id", id)
     .single<ListingDetail>();
@@ -105,6 +108,8 @@ export default async function ListingDetailPage({
             </>
           ) : null}
         </div>
+
+        <ListingDistanceBadge latitude={listing.latitude} longitude={listing.longitude} />
 
         {listing.description ? (
           <p className="whitespace-pre-line text-sm">{listing.description}</p>
