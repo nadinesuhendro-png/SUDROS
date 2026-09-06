@@ -1,9 +1,10 @@
 // PATH: app/dashboard/layout.tsx
-// AKSI: GANTI SELURUH ISI FILE (hapus bar toggle tema mengambang, ThemeToggle pindah ke halaman Profil)
+// AKSI: GANTI TOTAL (tambah tracking kunjungan Penjual Jangkar)
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import DashboardNav from "./DashboardNav";
+import { trackAnchorVisit } from "@/lib/anchor/track-visit";
 
 export default async function DashboardLayout({
   children,
@@ -19,6 +20,8 @@ export default async function DashboardLayout({
   if (!user) {
     redirect("/login");
   }
+
+  await trackAnchorVisit(user.id);
 
   const { count: unreadCount } = await supabase
     .from("notifications")
