@@ -1,5 +1,5 @@
 // PATH: app/dashboard/page.tsx
-// AKSI: GANTI TOTAL
+// AKSI: GANTI TOTAL (header sticky saat scroll)
 
 import Image from "next/image";
 import Link from "next/link";
@@ -77,9 +77,6 @@ export default async function DashboardPage() {
       ? Math.min(100, Math.round((listingQuota.used / listingQuota.limit) * 100))
       : 0;
 
-  // ASUMSI kolom (belum diverifikasi ke skema asli): views_count,
-  // whatsapp_clicks, favorites_count di tabel listings. Kalau salah nama,
-  // ini cuma akan tampil 0, tidak akan bikin halaman error.
   const { data: statsRows } = await supabase
     .from("listings")
     .select("views_count, whatsapp_clicks, favorites_count")
@@ -105,8 +102,14 @@ export default async function DashboardPage() {
       className="mx-auto flex max-w-2xl flex-col gap-4 p-6 md:max-w-5xl md:gap-6 md:p-8"
       style={{ backgroundColor: "var(--background)" }}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* Header — sticky, tidak ikut scroll */}
+      <div
+        className="sticky top-0 z-30 -mx-6 flex items-center justify-between px-6 py-3 md:-mx-8 md:px-8"
+        style={{
+          backgroundColor: "var(--background)",
+          borderBottom: "1px solid #DCEEFF",
+        }}
+      >
         <div>
           <h1
             className="text-lg font-semibold md:text-xl"
@@ -344,4 +347,4 @@ export default async function DashboardPage() {
       </form>
     </main>
   );
-}
+                  }
