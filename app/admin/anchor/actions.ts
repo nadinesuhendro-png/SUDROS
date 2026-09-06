@@ -1,5 +1,5 @@
 // PATH: app/admin/anchor/actions.ts
-// AKSI: BUAT FILE BARU
+// AKSI: GANTI TOTAL
 
 "use server";
 
@@ -26,6 +26,8 @@ async function requireAdmin() {
   return { supabase, adminId: user.id };
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function createAnchorInvite() {
   const { supabase, adminId } = await requireAdmin();
 
@@ -51,13 +53,24 @@ export async function upgradeUserToAnchor(formData: FormData) {
     redirect("/admin/anchor?error=empty_query");
   }
 
-  // Cari berdasarkan User ID persis, atau nomor WhatsApp (partial match)
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, whatsapp")
-    .or(`id.eq.${query},whatsapp.ilike.%${query}%`)
-    .limit(1)
-    .maybeSingle();
+  let profile: { id: string } | null = null;
+
+  if (UUID_REGEX.test(query)) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", query)
+      .maybeSingle();
+    profile = data;
+  } else {
+    const { data } = await supabase
+      .from("profiles")
+      .select("id")
+      .ilike("whatsapp", `%${query}%`)
+      .limit(1)
+      .maybeSingle();
+    profile = data;
+  }
 
   if (!profile) {
     redirect("/admin/anchor?error=user_not_found");
