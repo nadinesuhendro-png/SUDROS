@@ -56,11 +56,9 @@ export async function moderateListing(formData: FormData) {
     redirect("/admin/listings");
   }
 
-  // Ambil data listing dulu (untuk owner id, judul, dan status lama)
-  // supaya kita tahu siapa yang harus dinotifikasi dan apakah status benar-benar berubah.
   const { data: listing } = await supabase
     .from("listings")
-    .select("id, user_id, title, status")
+    .select("id, owner_id, title, status")
     .eq("id", id)
     .single();
 
@@ -79,13 +77,11 @@ export async function moderateListing(formData: FormData) {
     redirect("/admin/listings");
   }
 
-  // Kirim notifikasi ke pemilik listing hanya kalau status benar-benar berubah
-  // dan bukan admin sendiri yang jadi pemilik (jaga-jaga aksi admin di listing sendiri, opsional).
   if (oldStatus !== status) {
     const template = STATUS_MESSAGES[status];
     if (template) {
       await supabase.from("notifications").insert({
-        user_id: listing.user_id,
+        user_id: listing.owner_id,
         title: template.title,
         message: template.message(listing.title),
         link: `/dashboard/listings`,
@@ -95,4 +91,4 @@ export async function moderateListing(formData: FormData) {
   }
 
   redirect("/admin/listings");
-  }
+}
