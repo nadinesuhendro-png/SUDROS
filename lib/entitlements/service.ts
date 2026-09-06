@@ -1,11 +1,12 @@
 // PATH: lib/entitlements/service.ts
-// AKSI: GANTI SELURUH ISI FILE (tambah canUserAccess & getFeatureLimit reusable)
+// AKSI: GANTI TOTAL
 
 import { createClient } from "@/lib/supabase/server";
 
 export type UserEntitlements = {
   hasActivePackage: boolean;
   isFreeTier: boolean;
+  isAnchorSeller: boolean;
   package: {
     id: string;
     name: string;
@@ -28,7 +29,6 @@ export type UserEntitlements = {
   canFeatureListing: boolean;
 };
 
-// Fitur boolean paket (nyala/mati) yang bisa dicek dengan canUserAccess()
 export type BooleanFeatureKey =
   | "homepagePriority"
   | "categoryPriority"
@@ -37,7 +37,6 @@ export type BooleanFeatureKey =
   | "prioritySupport"
   | "analytics";
 
-// Fitur berbasis kuota (angka) yang bisa dicek dengan getFeatureLimit()
 export type QuotaFeatureKey = "listings" | "featured";
 
 type PackageRow = {
@@ -66,10 +65,15 @@ function buildQuotaEntitlements(
   featuredUsed: number,
   startedAt: string | null,
   expiresAt: string | null,
-  isFreeTier: boolean
+  isFreeTier: boolean,
+  isAnchorSeller = false
 ): UserEntitlements {
-  const listingsRemaining = Math.max(0, pkg.max_active_listings - listingsUsed);
-  const featuredRemaining = Math.max(0, pkg.featured_limit - featuredUsed);
+  const listingsRemaining = isAnchorSeller
+    ? Infinity
+    : Math.max(0, pkg.max_active_listings - listingsUsed);
+  const featuredRemaining = isAnchorSeller
+    ? Infinity
+    : Math.max(0, pkg.featured_limit - featuredUsed);
 
   let daysRemaining: number | null = null;
   if (expiresAt) {
@@ -81,8 +85,9 @@ function buildQuotaEntitlements(
   }
 
   return {
-    hasActivePackage: !isFreeTier,
-    isFreeTier,
+    hasActivePackage: !isFreeTier || isAnchorSeller,
+    isFreeTier: isFreeTier && !isAnchorSeller,
+    isAnchorSeller,
     package: {
       id: pkg.id,
       name: pkg.name,
@@ -99,41 +104,33 @@ function buildQuotaEntitlements(
     daysRemaining,
     quotas: {
       listings: {
-        limit: pkg.max_active_listings,
+        limit: isAnchorSeller ? Infinity : pkg.max_active_listings,
         used: listingsUsed,
         remaining: listingsRemaining,
       },
       featured: {
-        limit: pkg.featured_limit,
+        limit: isAnchorSeller ? Infinity : pkg.featured_limit,
         used: featuredUsed,
         remaining: featuredRemaining,
       },
     },
-    canCreateListing: listingsRemaining > 0,
-    canFeatureListing: featuredRemaining > 0,
+    canCreateListing: isAnchorSeller || listingsRemaining > 0,
+    canFeatureListing: isAnchorSeller || featuredRemaining > 0,
   };
 }
 
-// Sumber kebenaran tunggal untuk hak akses user. Selalu panggil ini di
-// server (server component atau server action) — jangan pernah percaya
-// hasil entitlement dari client. Jika user tidak punya langganan
-// berbayar aktif, otomatis fallback ke limit paket "free".
 export async function getUserEntitlements(
   userId: string
 ): Promise<UserEntitlements> {
   const supabase = await createClient();
 
-  const { data: activePackage } = await supabase
-    .from("user_active_packages")
-    .select(
-      "started_at, expires_at, advertising_packages(id, name, slug, max_active_listings, featured_limit, analytics_level, homepage_priority, category_priority, seller_badge, brand_profile, priority_support)"
-    )
-    .eq("user_id", userId)
-    .eq("is_active", true)
-    .gte("expires_at", new Date().toISOString())
-    .order("expires_at", { ascending: false })
-    .limit(1)
-    .maybeSingle<ActivePackageRow>();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_anchor_seller")
+    .eq("id", userId)
+    .maybeSingle();
+
+  const isAnchorSeller = profile?.is_anchor_seller === true;
 
   const { count: activeListingCount } = await supabase
     .from("listings")
@@ -150,6 +147,44 @@ export async function getUserEntitlements(
   const listingsUsed = activeListingCount || 0;
   const featuredUsed = featuredCount || 0;
 
+  // Penjual Jangkar: bypass total sistem paket, unlimited listing & featured,
+  // tanpa perlu query advertising_packages/user_active_packages sama sekali.
+  if (isAnchorSeller) {
+    return buildQuotaEntitlements(
+      {
+        id: "anchor",
+        name: "Penjual Jangkar",
+        slug: "anchor",
+        max_active_listings: Infinity,
+        featured_limit: Infinity,
+        analytics_level: "advanced",
+        homepage_priority: true,
+        category_priority: true,
+        seller_badge: true,
+        brand_profile: true,
+        priority_support: true,
+      },
+      listingsUsed,
+      featuredUsed,
+      null,
+      null,
+      false,
+      true
+    );
+  }
+
+  const { data: activePackage } = await supabase
+    .from("user_active_packages")
+    .select(
+      "started_at, expires_at, advertising_packages(id, name, slug, max_active_listings, featured_limit, analytics_level, homepage_priority, category_priority, seller_badge, brand_profile, priority_support)"
+    )
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .gte("expires_at", new Date().toISOString())
+    .order("expires_at", { ascending: false })
+    .limit(1)
+    .maybeSingle<ActivePackageRow>();
+
   if (activePackage && activePackage.advertising_packages) {
     return buildQuotaEntitlements(
       activePackage.advertising_packages,
@@ -161,7 +196,6 @@ export async function getUserEntitlements(
     );
   }
 
-  // Tidak ada langganan berbayar aktif — fallback ke paket Free
   const { data: freePackage } = await supabase
     .from("advertising_packages")
     .select(
@@ -172,8 +206,6 @@ export async function getUserEntitlements(
     .maybeSingle<PackageRow>();
 
   if (!freePackage) {
-    // Fallback darurat kalau paket Free tidak ditemukan/dinonaktifkan admin —
-    // jangan biarkan seluruh dashboard error, tapi tetap tidak bisa apa-apa
     return buildQuotaEntitlements(
       {
         id: "",
@@ -206,9 +238,6 @@ export async function getUserEntitlements(
   );
 }
 
-// Cek satu fitur boolean tertentu dari entitlement yang SUDAH diambil.
-// Operasi murni (tidak query DB lagi) — panggil getUserEntitlements() sekali
-// di server component/action, lalu pakai hasilnya untuk semua pengecekan.
 export function canUserAccess(
   entitlements: UserEntitlements,
   feature: BooleanFeatureKey
@@ -236,12 +265,9 @@ export function canUserAccess(
   }
 }
 
-// Ambil limit/usage/remaining untuk satu fitur berbasis kuota, dari
-// entitlement yang sudah diambil. Sama seperti canUserAccess — tidak
-// query DB lagi.
 export function getFeatureLimit(
   entitlements: UserEntitlements,
   feature: QuotaFeatureKey
 ): { limit: number; used: number; remaining: number } {
   return entitlements.quotas[feature];
-      }
+}
