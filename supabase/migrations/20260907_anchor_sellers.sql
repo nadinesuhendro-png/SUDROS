@@ -1,5 +1,5 @@
 -- PATH: supabase/migrations/20260907_anchor_sellers.sql
--- AKSI: BUAT FILE BARU
+-- AKSI: GANTI TOTAL
 
 alter table profiles
   add column if not exists is_anchor_seller boolean not null default false,
@@ -18,13 +18,13 @@ create table if not exists anchor_invites (
 
 alter table anchor_invites enable row level security;
 
+drop policy if exists "admin_manage_anchor_invites" on anchor_invites;
 create policy "admin_manage_anchor_invites"
   on anchor_invites
   for all
   using (is_admin())
   with check (is_admin());
 
--- Redeem undangan, dipanggil user biasa yang sudah login via RPC
 create or replace function redeem_anchor_invite(p_token text)
 returns jsonb
 language plpgsql
@@ -79,7 +79,8 @@ begin
 end;
 $$;
 
--- Catat aktivitas terakhir setiap kali penjual jangkar bikin/update listing
+grant execute on function redeem_anchor_invite(text) to authenticated;
+
 create or replace function update_anchor_last_active()
 returns trigger
 language plpgsql
@@ -89,7 +90,7 @@ as $$
 begin
   update profiles
     set anchor_last_active_at = now()
-    where id = NEW.user_id and is_anchor_seller = true;
+    where id = NEW.owner_id and is_anchor_seller = true;
   return NEW;
 end;
 $$;
@@ -100,7 +101,6 @@ create trigger trg_update_anchor_last_active
   for each row
   execute function update_anchor_last_active();
 
--- Nonaktifkan otomatis: tidak ada listing ATAU tidak aktif 3 bulan (OR, bukan AND)
 create or replace function deactivate_inactive_anchor_sellers()
 returns void
 language plpgsql
@@ -115,7 +115,7 @@ begin
     from profiles p
     where p.is_anchor_seller = true
       and (
-        not exists (select 1 from listings l where l.user_id = p.id)
+        not exists (select 1 from listings l where l.owner_id = p.id)
         or coalesce(p.anchor_last_active_at, p.anchor_activated_at) < now() - interval '3 months'
       )
   loop
@@ -134,3 +134,5 @@ begin
   end loop;
 end;
 $$;
+
+grant execute on function deactivate_inactive_anchor_sellers() to service_role;
