@@ -82,6 +82,7 @@ export async function upgradeUserToAnchor(formData: FormData) {
       is_anchor_seller: true,
       anchor_activated_at: new Date().toISOString(),
       anchor_last_active_at: new Date().toISOString(),
+      anchor_last_visit_at: new Date().toISOString(),
     })
     .eq("id", profile!.id);
 
@@ -90,7 +91,7 @@ export async function upgradeUserToAnchor(formData: FormData) {
   }
 
   await supabase.from("notifications").insert({
-    user_id: profile!.id,
+    recipient_user_id: profile!.id,
     title: "🎉 Kamu resmi jadi Penjual Jangkar",
     message:
       "Admin baru saja mengaktifkan status Penjual Jangkar di akun kamu. Sekarang listing kamu tanpa batas dan gratis biaya paket.",
@@ -110,7 +111,7 @@ export async function revokeAnchor(formData: FormData) {
   await supabase.from("profiles").update({ is_anchor_seller: false }).eq("id", id);
 
   await supabase.from("notifications").insert({
-    user_id: id,
+    recipient_user_id: id,
     title: "Status Penjual Jangkar dicabut",
     message: "Status Penjual Jangkar di akun kamu dicabut oleh admin.",
     link: "/dashboard/package",
