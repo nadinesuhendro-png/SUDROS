@@ -1,5 +1,5 @@
 // PATH: app/admin/AdminNav.tsx
-// AKSI: GANTI SELURUH ISI FILE (tambah tab Legal untuk Terms & Conditions)
+// AKSI: GANTI TOTAL
 
 "use client";
 
@@ -17,6 +17,7 @@ const navItems = [
   { href: "/admin/agents", label: "Agents" },
   { href: "/admin/marketing", label: "Marketing" },
   { href: "/admin/terms", label: "Legal" },
+  { href: "/admin/anchor", label: "Penjual Jangkar" },
 ];
 
 export default function AdminNav() {
