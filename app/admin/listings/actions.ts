@@ -81,7 +81,7 @@ export async function moderateListing(formData: FormData) {
     const template = STATUS_MESSAGES[status];
     if (template) {
       await supabase.from("notifications").insert({
-        user_id: listing.owner_id,
+        recipient_user_id: listing.owner_id,
         title: template.title,
         message: template.message(listing.title),
         link: `/dashboard/listings`,
