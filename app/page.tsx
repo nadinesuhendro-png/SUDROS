@@ -1,193 +1,326 @@
+// AKSI: GANTI SELURUH ISI FILE (atau BUAT FILE BARU kalau app/page.tsx belum ada)
 // PATH: app/page.tsx
-// AKSI: UPDATE FILE (tambah pencarian & filter)
 
-import Image from "next/image";
+import type { Metadata } from "next";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import Link from "next/link";
-import { Navbar } from "@/components/navbar";
-import { createClient } from "@/lib/supabase/server";
 
-type ListingCard = {
-  id: string;
-  title: string;
-  price: number;
-  location_city: string;
-  location_area: string | null;
-  listing_images: { image_url: string; sort_order: number }[];
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-jakarta",
+});
+
+export const metadata: Metadata = {
+  title: "SUDROS - Pasar Lokal Dekat Rumahmu",
+  description:
+    "Temukan, tawarkan, dan terhubung langsung dengan penjual di kotamu. SUDROS adalah pasar lokal digital, tanpa ongkir mahal dan tanpa perantara.",
 };
 
-type Category = {
-  id: string;
-  name: string;
+const brand = {
+  primary: "#1d6fb8",
+  light: "#2aa8e0",
+  navy: "#0b2a52",
+  amber: "#f2a93b",
+  ink: "#10192b",
+  paper: "#f7f8fa",
 };
 
-function formatPrice(price: number) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(price);
-}
+const listingMocks = [
+  {
+    label: "Peralatan Makan",
+    price: "Rp120.000",
+    city: "Medan",
+    rotate: "-rotate-3",
+    top: "top-2",
+    gradient: "from-[#dfe9f3] to-[#c7d7ea]",
+  },
+  {
+    label: "Dijual Meja",
+    price: "Rp500.000",
+    city: "Medan",
+    rotate: "rotate-2",
+    top: "top-8",
+    gradient: "from-[#f4e2c7] to-[#ecd0a4]",
+  },
+  {
+    label: "Topi",
+    price: "Rp15.000",
+    city: "Medan",
+    rotate: "-rotate-1",
+    top: "top-0",
+    gradient: "from-[#d9ecdd] to-[#bfe0c7]",
+  },
+];
 
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string; category?: string; city?: string }>;
-}) {
-  const { q, category, city } = await searchParams;
-  const supabase = await createClient();
+const steps = [
+  {
+    number: "01",
+    title: "Temukan",
+    body: "Cari barang atau jasa di sekitarmu. Difilter berdasarkan kota, jadi hasilnya memang dekat rumah.",
+  },
+  {
+    number: "02",
+    title: "Tawarkan",
+    body: "Pasang listingmu sendiri lengkap dengan foto dan harga, selesai dalam hitungan menit.",
+  },
+  {
+    number: "03",
+    title: "Terhubung",
+    body: "Chat langsung ke WhatsApp penjual atau pembeli. Tidak ada perantara, tidak ada antrian tiket.",
+  },
+];
 
-  const { data: categories } = await supabase
-    .from("categories")
-    .select("id, name")
-    .order("name")
-    .returns<Category[]>();
+const categories = [
+  "Makanan & Katering",
+  "Perabotan Rumah",
+  "Fashion",
+  "Elektronik",
+  "Jasa",
+  "Kendaraan",
+  "Properti",
+  "Lainnya",
+];
 
-  let query = supabase
-    .from("listings")
-    .select(
-      "id, title, price, location_city, location_area, listing_images(image_url, sort_order)"
-    )
-    .order("created_at", { ascending: false });
+const reasons = [
+  {
+    title: "Bukan pasar raksasa",
+    body: "SUDROS dibuat untuk transaksi dekat rumah, bukan tempat kamu bersaing dengan penjual dari luar pulau.",
+  },
+  {
+    title: "Langsung ke WhatsApp",
+    body: "Tidak ada sistem chat rumit di dalam aplikasi. Satu ketukan, langsung ngobrol seperti biasa.",
+  },
+  {
+    title: "Harga yang kamu lihat, itu yang kamu bayar",
+    body: "Tanpa biaya kirim yang tiba-tiba lebih mahal dari barangnya. Ambil sendiri kalau memang dekat.",
+  },
+];
 
-  if (q) {
-    query = query.ilike("title", `%${q}%`);
-  }
-
-  if (category) {
-    query = query.eq("category_id", category);
-  }
-
-  if (city) {
-    query = query.ilike("location_city", `%${city}%`);
-  }
-
-  const { data: listings } = await query.returns<ListingCard[]>();
-
-  const hasActiveFilter = Boolean(q || category || city);
-
+export default function LandingPage() {
   return (
-    <>
-      <Navbar />
-      <main className="flex min-h-[calc(100vh-56px)] flex-col items-center gap-4 p-6 text-center">
-        <Image
-          src="/brand/sudros-logo.png"
-          alt="SUDROS"
-          width={220}
-          height={140}
-          priority
-          className="h-auto w-48"
-        />
-        <h1
-          className="text-2xl font-semibold"
-          style={{ color: "var(--primary-dark)" }}
-        >
-          Temukan. Tawarkan. Terhubung.
-        </h1>
-        <p className="max-w-xs text-[var(--muted-foreground)]">
-          Platform listing lokal untuk properti, kendaraan, elektronik,
-          barang, dan jasa.
-        </p>
-
-        <form
-          method="GET"
-          className="flex w-full max-w-2xl flex-col gap-2 text-left sm:flex-row"
-        >
-          <input
-            type="text"
-            name="q"
-            defaultValue={q || ""}
-            placeholder="Cari listing..."
-            className="flex-1 rounded-[var(--radius)] border border-gray-300 px-4 py-2 text-sm"
-          />
-          <select
-            name="category"
-            defaultValue={category || ""}
-            className="rounded-[var(--radius)] border border-gray-300 px-4 py-2 text-sm"
-          >
-            <option value="">Semua Kategori</option>
-            {(categories || []).map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
-          <input
-            type="text"
-            name="city"
-            defaultValue={city || ""}
-            placeholder="Kota"
-            className="rounded-[var(--radius)] border border-gray-300 px-4 py-2 text-sm sm:w-32"
-          />
-          <button
-            type="submit"
-            className="rounded-[var(--radius)] px-4 py-2 text-sm font-medium text-white"
-            style={{ backgroundColor: "var(--primary)" }}
-          >
-            Cari
-          </button>
-        </form>
-
-        {hasActiveFilter ? (
-          <Link
-            href="/"
-            className="text-xs text-[var(--muted-foreground)] underline"
-          >
-            Reset filter
-          </Link>
-        ) : null}
-
-        <div className="mt-2 grid w-full max-w-5xl grid-cols-2 gap-4 text-left sm:grid-cols-3 md:grid-cols-4">
-          {(listings || []).map((listing) => {
-            const sortedImages = [...(listing.listing_images || [])].sort(
-              (a, b) => a.sort_order - b.sort_order
-            );
-            const coverImage = sortedImages[0]?.image_url;
-
-            return (
-              <Link
-                key={listing.id}
-                href={`/listings/${listing.id}`}
-                className="flex flex-col overflow-hidden rounded-[var(--radius)] border border-gray-200"
-              >
-                <div className="relative aspect-square w-full bg-gray-100">
-                  {coverImage ? (
-                    <Image
-                      src={coverImage}
-                      alt={listing.title}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : null}
-                </div>
-                <div className="flex flex-col gap-1 p-2">
-                  <span className="line-clamp-2 text-sm font-medium">
-                    {listing.title}
-                  </span>
-                  <span
-                    className="text-sm font-semibold"
-                    style={{ color: "var(--primary)" }}
-                  >
-                    {formatPrice(listing.price)}
-                  </span>
-                  <span className="text-xs text-[var(--muted-foreground)]">
-                    {listing.location_area
-                      ? `${listing.location_area}, ${listing.location_city}`
-                      : listing.location_city}
-                  </span>
-                </div>
-              </Link>
-            );
-          })}
+    <div className={`${jakarta.variable} font-sans`} style={{ color: brand.ink }}>
+      {/* Header */}
+      <header className="sticky top-0 z-20 border-b border-black/5 bg-white/90 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
+          <span className="text-lg font-extrabold tracking-tight" style={{ color: brand.navy }}>
+            SUDROS
+          </span>
+          <nav className="flex items-center gap-3">
+            <Link
+              href="/masuk"
+              className="text-sm font-medium text-slate-600 hover:text-slate-900"
+            >
+              Masuk
+            </Link>
+            <Link
+              href="/daftar"
+              className="rounded-full px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+              style={{ backgroundColor: brand.primary }}
+            >
+              Daftar
+            </Link>
+          </nav>
         </div>
+      </header>
 
-        {(listings || []).length === 0 ? (
-          <p className="mt-6 text-sm text-[var(--muted-foreground)]">
-            {hasActiveFilter
-              ? "Tidak ada listing yang cocok dengan pencarian."
-              : "Belum ada listing. Jadilah yang pertama membuat listing!"}
-          </p>
-        ) : null}
-      </main>
-    </>
+      {/* Hero */}
+      <section className="mx-auto max-w-6xl px-5 pb-20 pt-14 sm:pt-20">
+        <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+          <div>
+            <p
+              className="text-sm font-semibold"
+              style={{ color: brand.primary }}
+            >
+              Temukan. Tawarkan. Terhubung.
+            </p>
+            <h1 className="mt-4 text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl">
+              Beli-jual dekat rumah, tanpa basa-basi ongkir.
+            </h1>
+            <p className="mt-5 max-w-md text-base leading-relaxed text-slate-600">
+              SUDROS menghubungkan kamu langsung dengan penjual di kotamu.
+              Lihat barangnya, chat lewat WhatsApp, ambil sendiri kalau mau.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link
+                href="/daftar"
+                className="rounded-full px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
+                style={{ backgroundColor: brand.amber, color: brand.ink }}
+              >
+                Mulai Jual
+              </Link>
+              <Link
+                href="/dashboard/explore"
+                className="rounded-full border px-6 py-3 text-sm font-semibold transition hover:bg-slate-50"
+                style={{ borderColor: brand.navy, color: brand.navy }}
+              >
+                Lihat Listing
+              </Link>
+            </div>
+            <p className="mt-5 text-sm text-slate-500">
+              Sudah dipakai penjual di Medan dan sekitarnya.
+            </p>
+          </div>
+
+          {/* Collage: mading digital ala papan pengumuman */}
+          <div className="relative mx-auto h-[340px] w-full max-w-sm sm:h-[380px]">
+            {listingMocks.map((item) => (
+              <div
+                key={item.label}
+                className={`absolute ${item.top} ${item.rotate} w-52 rounded-xl border border-black/5 bg-white p-3 shadow-lg transition hover:-translate-y-1`}
+                style={{
+                  left: item.label === "Topi" ? "40%" : item.label === "Dijual Meja" ? "8%" : "auto",
+                  right: item.label === "Peralatan Makan" ? "4%" : "auto",
+                }}
+              >
+                <div
+                  className={`h-28 w-full rounded-lg bg-gradient-to-br ${item.gradient}`}
+                />
+                <p className="mt-3 text-sm font-semibold">{item.label}</p>
+                <p
+                  className="text-sm font-bold"
+                  style={{ color: brand.primary }}
+                >
+                  {item.price}
+                </p>
+                <p className="text-xs text-slate-500">{item.city}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 3 Langkah */}
+      <section className="border-t border-black/5" style={{ backgroundColor: brand.paper }}>
+        <div className="mx-auto max-w-6xl px-5 py-16">
+          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+            Tiga langkah, itu saja.
+          </h2>
+          <div className="mt-10 grid gap-8 sm:grid-cols-3">
+            {steps.map((step) => (
+              <div key={step.number}>
+                <span
+                  className="text-sm font-bold"
+                  style={{ color: brand.light }}
+                >
+                  {step.number}
+                </span>
+                <h3 className="mt-2 text-lg font-bold">{step.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                  {step.body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Kategori */}
+      <section className="mx-auto max-w-6xl px-5 py-16">
+        <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+          Apa saja bisa dijual.
+        </h2>
+        <div className="mt-6 flex flex-wrap gap-3">
+          {categories.map((cat) => (
+            <span
+              key={cat}
+              className="rounded-full border px-4 py-2 text-sm font-medium"
+              style={{ borderColor: "#dbe4ee", color: brand.navy }}
+            >
+              {cat}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      {/* Kenapa SUDROS */}
+      <section className="border-t border-black/5 px-5 py-16" style={{ backgroundColor: brand.navy }}>
+        <div className="mx-auto max-w-6xl">
+          <h2 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+            Kenapa bukan pasar besar saja?
+          </h2>
+          <div className="mt-10 grid gap-8 sm:grid-cols-3">
+            {reasons.map((reason) => (
+              <div key={reason.title}>
+                <h3 className="text-base font-bold text-white">
+                  {reason.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-300">
+                  {reason.body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Harga */}
+      <section className="mx-auto max-w-6xl px-5 py-16">
+        <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+          Mulai gratis, upgrade kalau perlu.
+        </h2>
+        <div className="mt-10 grid gap-6 sm:grid-cols-2">
+          <div className="rounded-2xl border border-black/5 p-6">
+            <p className="text-sm font-semibold text-slate-500">Free</p>
+            <p className="mt-2 text-2xl font-extrabold">Rp0</p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              Pasang listing dasar dan mulai jualan tanpa biaya apa pun.
+            </p>
+          </div>
+          <div
+            className="rounded-2xl border p-6"
+            style={{ borderColor: brand.primary, backgroundColor: "#eef5fb" }}
+          >
+            <p className="text-sm font-semibold" style={{ color: brand.primary }}>
+              Business
+            </p>
+            <p className="mt-2 text-2xl font-extrabold">
+              Rp149.000<span className="text-sm font-medium text-slate-500">/bulan</span>
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              Untuk penjual yang butuh listing lebih banyak dan tampil lebih menonjol.
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/pricing"
+          className="mt-6 inline-block text-sm font-semibold"
+          style={{ color: brand.primary }}
+        >
+          Lihat semua paket
+        </Link>
+      </section>
+
+      {/* CTA Footer */}
+      <section className="px-5 py-16" style={{ backgroundColor: brand.amber }}>
+        <div className="mx-auto max-w-6xl text-center">
+          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl" style={{ color: brand.ink }}>
+            Jadi penjual pertama di lingkunganmu.
+          </h2>
+          <Link
+            href="/daftar"
+            className="mt-6 inline-block rounded-full px-8 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
+            style={{ backgroundColor: brand.navy }}
+          >
+            Daftar Sekarang
+          </Link>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-black/5 px-5 py-10 text-sm text-slate-500">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
+          <span>&copy; {new Date().getFullYear()} SUDROS</span>
+          <div className="flex gap-5">
+            <Link href="/terms" className="hover:text-slate-800">
+              Syarat &amp; Ketentuan
+            </Link>
+            <Link href="/privacy" className="hover:text-slate-800">
+              Kebijakan Privasi
+            </Link>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }
