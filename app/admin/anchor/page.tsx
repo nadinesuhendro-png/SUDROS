@@ -1,5 +1,5 @@
 // PATH: app/admin/anchor/page.tsx
-// AKSI: BUAT FILE BARU
+// AKSI: GANTI TOTAL
 
 import { createClient } from "@/lib/supabase/server";
 import { createAnchorInvite, upgradeUserToAnchor, revokeAnchor } from "./actions";
@@ -16,7 +16,7 @@ export default async function AnchorAdminPage({
 
   const { data: anchors } = await supabase
     .from("profiles")
-    .select("id, whatsapp, is_anchor_seller, anchor_activated_at, anchor_last_active_at")
+    .select("id, whatsapp, is_anchor_seller, anchor_activated_at, anchor_last_active_at, anchor_last_visit_at")
     .eq("is_anchor_seller", true)
     .order("anchor_activated_at", { ascending: false });
 
@@ -92,7 +92,10 @@ export default async function AnchorAdminPage({
                 <div className="text-gray-500 text-xs">
                   Aktif sejak {a.anchor_activated_at ? new Date(a.anchor_activated_at).toLocaleDateString("id-ID") : "-"}
                   {" · "}
-                  Terakhir aktif {a.anchor_last_active_at ? new Date(a.anchor_last_active_at).toLocaleDateString("id-ID") : "-"}
+                  Listing terakhir {a.anchor_last_active_at ? new Date(a.anchor_last_active_at).toLocaleDateString("id-ID") : "-"}
+                </div>
+                <div className="text-gray-500 text-xs">
+                  Kunjungan terakhir {a.anchor_last_visit_at ? new Date(a.anchor_last_visit_at).toLocaleDateString("id-ID") : "belum pernah"}
                 </div>
               </div>
               <form action={revokeAnchor}>
