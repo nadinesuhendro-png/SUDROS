@@ -108,13 +108,13 @@ export default function LandingPage() {
           </span>
           <nav className="flex items-center gap-3">
             <Link
-              href="/masuk"
+              href="/login"
               className="text-sm font-medium text-slate-600 hover:text-slate-900"
             >
               Masuk
             </Link>
             <Link
-              href="/daftar"
+              href="/register"
               className="rounded-full px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
               style={{ backgroundColor: brand.primary }}
             >
@@ -143,7 +143,7 @@ export default function LandingPage() {
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
-                href="/daftar"
+                href="/register"
                 className="rounded-full px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
                 style={{ backgroundColor: brand.amber, color: brand.ink }}
               >
@@ -298,7 +298,7 @@ export default function LandingPage() {
             Jadi penjual pertama di lingkunganmu.
           </h2>
           <Link
-            href="/daftar"
+            href="/register"
             className="mt-6 inline-block rounded-full px-8 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
             style={{ backgroundColor: brand.navy }}
           >
