@@ -1,8 +1,9 @@
-// AKSI: GANTI SELURUH ISI FILE (tambah event tracking analytics)
+// AKSI: GANTI SELURUH ISI FILE (pasang foto asli UMKM di hero & section Dari Lokal Untuk Lokal)
 // PATH: app/page.tsx
 
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/slug";
@@ -57,10 +58,17 @@ const offerGrid = [
 ];
 
 const heroMockCards = [
-  { name: "Bengkel Motor Jaya", category: "Bengkel & Otomotif", place: "Kuala Tanjung" },
-  { name: "Warung Mak Ani", category: "Kuliner", place: "Lima Puluh" },
-  { name: "Ikan Segar Laut Kita", category: "Produk Lokal", place: "Tanjung Tiram" },
-  { name: "Rumah Dijual", category: "Properti", place: "Batu Bara" },
+  { name: "Bengkel Motor Jaya", category: "Bengkel & Otomotif", place: "Kuala Tanjung", imageSrc: "/images/umkm/umkm-bengkel.jpg" },
+  { name: "Warung Mak Ani", category: "Kuliner", place: "Lima Puluh", imageSrc: "/images/umkm/umkm-warung.jpg" },
+  { name: "Ikan Segar Laut Kita", category: "Produk Lokal", place: "Tanjung Tiram", imageSrc: "/images/umkm/umkm-pasar-ikan.jpg" },
+  { name: "Rumah Dijual", category: "Properti", place: "Batu Bara", imageSrc: null },
+];
+
+const localPhotos = [
+  { src: "/images/umkm/umkm-pangkas-rambut.jpg", alt: "Tukang pangkas rambut", tall: true },
+  { src: "/images/umkm/umkm-penjahit.jpg", alt: "Penjahit batik", tall: false },
+  { src: "/images/umkm/umkm-nelayan.jpg", alt: "Nelayan lokal", tall: false },
+  { src: "/images/umkm/umkm-peternak-ayam.jpg", alt: "Peternak ayam", tall: true },
 ];
 
 const searcherSteps = [
@@ -227,10 +235,16 @@ export default async function HomePage({
                 key={card.name}
                 className={`rounded-2xl bg-white p-4 shadow-md ${i % 2 === 1 ? "sm:translate-y-6" : ""}`}
               >
-                <div
-                  className="h-24 w-full rounded-xl"
-                  style={{ background: `linear-gradient(135deg, ${skyBlueBg}, #cfe4f5)` }}
-                />
+                {card.imageSrc ? (
+                  <div className="relative h-24 w-full overflow-hidden rounded-xl">
+                    <Image src={card.imageSrc} alt={card.name} fill className="object-cover" />
+                  </div>
+                ) : (
+                  <div
+                    className="h-24 w-full rounded-xl"
+                    style={{ background: `linear-gradient(135deg, ${skyBlueBg}, #cfe4f5)` }}
+                  />
+                )}
                 <p className="mt-3 text-sm font-bold">{card.name}</p>
                 <p className="text-xs" style={{ color: mediumBlue }}>{card.category}</p>
                 <p className="mt-1 text-xs text-slate-500">📍 {card.place}</p>
@@ -325,17 +339,31 @@ export default async function HomePage({
 
       {/* Dari lokal untuk lokal */}
       <section className="px-5 py-16" style={{ backgroundColor: skyBlueBg }}>
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-            Dari Lokal, Untuk Lokal.
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-600">
-            Banyak hal hebat tumbuh di sekitar kita. SUDROS hadir untuk membantu usaha, produk, jasa,
-            dan potensi lokal lebih mudah ditemukan.
-          </p>
-          <p className="mt-5 text-sm font-semibold" style={{ color: royalBlue }}>
-            Setiap usaha punya cerita. Setiap daerah punya potensi.
-          </p>
+        <div className="mx-auto max-w-4xl">
+          <div className="grid grid-cols-4 gap-3">
+            {localPhotos.map((photo) => (
+              <div
+                key={photo.src}
+                className={`relative overflow-hidden rounded-2xl ${photo.tall ? "row-span-2" : ""}`}
+                style={{ aspectRatio: photo.tall ? "3 / 4" : "1 / 1" }}
+              >
+                <Image src={photo.src} alt={photo.alt} fill className="object-cover" sizes="25vw" />
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 text-center">
+            <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+              Dari Lokal, Untuk Lokal.
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-600">
+              Banyak hal hebat tumbuh di sekitar kita. SUDROS hadir untuk membantu usaha, produk, jasa,
+              dan potensi lokal lebih mudah ditemukan.
+            </p>
+            <p className="mt-5 text-sm font-semibold" style={{ color: royalBlue }}>
+              Setiap usaha punya cerita. Setiap daerah punya potensi.
+            </p>
+          </div>
         </div>
       </section>
 
