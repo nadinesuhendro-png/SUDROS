@@ -1,8 +1,8 @@
-// AKSI: BUAT FILE BARU
+// AKSI: GANTI SELURUH ISI FILE (tambah tracking listing_clicked)
 // PATH: components/listing-card.tsx
 
 import Image from "next/image";
-import Link from "next/link";
+import { TrackLink } from "@/components/analytics/track-link";
 
 const royalBlue = "#1d6fb8";
 
@@ -30,8 +30,10 @@ export function ListingCard({ listing }: { listing: ListingCardData }) {
   const coverImage = sortedImages[0]?.image_url;
 
   return (
-    <Link
+    <TrackLink
       href={`/listings/${listing.id}`}
+      event="listing_clicked"
+      eventProperties={{ listing_id: listing.id, title: listing.title }}
       className="flex flex-col overflow-hidden rounded-xl border bg-white"
       style={{ borderColor: "#e2ecf6" }}
     >
@@ -51,7 +53,6 @@ export function ListingCard({ listing }: { listing: ListingCardData }) {
             : listing.location_city}
         </span>
       </div>
-    </Link>
+    </TrackLink>
   );
 }
-
