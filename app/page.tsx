@@ -1,4 +1,4 @@
-// AKSI: GANTI SELURUH ISI FILE (hero jadi full-bleed cinematic photo, subjek kanan + overlay gelap kiri, tanpa kartu produk)
+// AKSI: GANTI SELURUH ISI FILE (hapus collage foto di section Dari Lokal Untuk Lokal, kembali ke teks polos)
 // PATH: app/page.tsx
 
 import type { Metadata } from "next";
@@ -63,13 +63,6 @@ const HERO_IMAGE_PATH = "/images/umkm/hero-cinematic.jpg";
 const hasHeroImage = fs.existsSync(
   path.join(process.cwd(), "public", HERO_IMAGE_PATH)
 );
-
-const localPhotos = [
-  { src: "/images/umkm/umkm-pangkas-rambut.jpg", alt: "Tukang pangkas rambut", tall: true },
-  { src: "/images/umkm/umkm-penjahit.jpg", alt: "Penjahit batik", tall: false },
-  { src: "/images/umkm/umkm-nelayan.jpg", alt: "Nelayan lokal", tall: false },
-  { src: "/images/umkm/umkm-peternak-ayam.jpg", alt: "Peternak ayam", tall: true },
-];
 
 const searcherSteps = [
   { number: "01", title: "Cari", body: "Cari apa yang kamu butuhkan." },
@@ -339,31 +332,17 @@ export default async function HomePage({
 
       {/* Dari lokal untuk lokal */}
       <section className="px-5 py-16" style={{ backgroundColor: skyBlueBg }}>
-        <div className="mx-auto max-w-4xl">
-          <div className="grid grid-cols-4 gap-3">
-            {localPhotos.map((photo) => (
-              <div
-                key={photo.src}
-                className={`relative overflow-hidden rounded-2xl ${photo.tall ? "row-span-2" : ""}`}
-                style={{ aspectRatio: photo.tall ? "3 / 4" : "1 / 1" }}
-              >
-                <Image src={photo.src} alt={photo.alt} fill className="object-cover" sizes="25vw" />
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-8 text-center">
-            <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-              Dari Lokal, Untuk Lokal.
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-600">
-              Banyak hal hebat tumbuh di sekitar kita. SUDROS hadir untuk membantu usaha, produk, jasa,
-              dan potensi lokal lebih mudah ditemukan.
-            </p>
-            <p className="mt-5 text-sm font-semibold" style={{ color: royalBlue }}>
-              Setiap usaha punya cerita. Setiap daerah punya potensi.
-            </p>
-          </div>
+        <div className="mx-auto max-w-4xl text-center">
+          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+            Dari Lokal, Untuk Lokal.
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-600">
+            Banyak hal hebat tumbuh di sekitar kita. SUDROS hadir untuk membantu usaha, produk, jasa,
+            dan potensi lokal lebih mudah ditemukan.
+          </p>
+          <p className="mt-5 text-sm font-semibold" style={{ color: royalBlue }}>
+            Setiap usaha punya cerita. Setiap daerah punya potensi.
+          </p>
         </div>
       </section>
 
