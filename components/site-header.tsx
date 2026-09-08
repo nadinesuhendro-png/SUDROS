@@ -1,8 +1,9 @@
-// AKSI: BUAT FILE BARU
+// AKSI: GANTI SELURUH ISI FILE (tambah tracking register_started)
 // PATH: components/site-header.tsx
 
 import Image from "next/image";
 import Link from "next/link";
+import { TrackLink } from "@/components/analytics/track-link";
 
 const deepBlue = "#0b2a52";
 const royalBlue = "#1d6fb8";
@@ -40,13 +41,15 @@ export function SiteHeader() {
           <Link href="/login" className="text-sm font-medium" style={{ color: deepBlue }}>
             Masuk
           </Link>
-          <Link
+          <TrackLink
             href="/register"
+            event="register_started"
+            eventProperties={{ source: "navbar_desktop" }}
             className="rounded-full px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
             style={{ backgroundColor: royalBlue }}
           >
             Daftarkan Usaha
-          </Link>
+          </TrackLink>
         </div>
 
         {/* Mobile menu (CSS-only checkbox toggle) */}
@@ -62,16 +65,17 @@ export function SiteHeader() {
           <Link href="/#cara-kerja" className="mt-3" style={{ color: deepBlue }}>Cara Kerja</Link>
           <Link href="/#umkm" className="mt-3" style={{ color: deepBlue }}>Untuk Bisnis</Link>
           <Link href="/login" className="mt-3" style={{ color: deepBlue }}>Masuk</Link>
-          <Link
+          <TrackLink
             href="/register"
+            event="register_started"
+            eventProperties={{ source: "navbar_mobile" }}
             className="mt-3 rounded-full px-4 py-2 text-center font-semibold text-white"
             style={{ backgroundColor: royalBlue }}
           >
             Daftarkan Usaha
-          </Link>
+          </TrackLink>
         </div>
       </div>
     </header>
   );
 }
-
