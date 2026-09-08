@@ -1,4 +1,4 @@
-// AKSI: BUAT FILE BARU
+// AKSI: GANTI SELURUH ISI FILE (tambah tracking register_started)
 // PATH: app/kategori/[slug]/page.tsx
 
 import type { Metadata } from "next";
@@ -9,6 +9,7 @@ import { slugify } from "@/lib/slug";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { ListingCard, type ListingCardData } from "@/components/listing-card";
+import { TrackLink } from "@/components/analytics/track-link";
 
 const SITE_URL = "https://www.sudros.id";
 const deepBlue = "#0b2a52";
@@ -109,13 +110,15 @@ export default async function CategoryPage({
             <p className="mt-1 text-sm text-slate-600">
               Belum ada listing {category.name.toLowerCase()}. Jadilah yang pertama.
             </p>
-            <Link
+            <TrackLink
               href="/register"
+              event="register_started"
+              eventProperties={{ source: "kategori_empty_state", category: category.name }}
               className="mt-4 inline-block rounded-full px-6 py-2.5 text-sm font-semibold text-white"
               style={{ backgroundColor: royalBlue }}
             >
               Buat Listing Pertama
-            </Link>
+            </TrackLink>
           </div>
         ) : (
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
@@ -130,4 +133,3 @@ export default async function CategoryPage({
     </div>
   );
 }
-
