@@ -1,7 +1,9 @@
-// AKSI: GANTI SELURUH ISI FILE (pasang foto asli UMKM di hero & section Dari Lokal Untuk Lokal)
+// AKSI: GANTI SELURUH ISI FILE (hero jadi full-bleed cinematic photo, subjek kanan + overlay gelap kiri, tanpa kartu produk)
 // PATH: app/page.tsx
 
 import type { Metadata } from "next";
+import fs from "node:fs";
+import path from "node:path";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
@@ -57,12 +59,10 @@ const offerGrid = [
   { icon: "📍", title: "Tempat & Aktivitas", body: "Tempat wisata, penginapan, tempat olahraga, event lokal." },
 ];
 
-const heroMockCards = [
-  { name: "Bengkel Motor Jaya", category: "Bengkel & Otomotif", place: "Kuala Tanjung", imageSrc: "/images/umkm/umkm-bengkel.jpg" },
-  { name: "Warung Mak Ani", category: "Kuliner", place: "Lima Puluh", imageSrc: "/images/umkm/umkm-warung.jpg" },
-  { name: "Ikan Segar Laut Kita", category: "Produk Lokal", place: "Tanjung Tiram", imageSrc: "/images/umkm/umkm-pasar-ikan.jpg" },
-  { name: "Rumah Dijual", category: "Properti", place: "Batu Bara", imageSrc: null },
-];
+const HERO_IMAGE_PATH = "/images/umkm/hero-cinematic.jpg";
+const hasHeroImage = fs.existsSync(
+  path.join(process.cwd(), "public", HERO_IMAGE_PATH)
+);
 
 const localPhotos = [
   { src: "/images/umkm/umkm-pangkas-rambut.jpg", alt: "Tukang pangkas rambut", tall: true },
@@ -156,16 +156,41 @@ export default async function HomePage({
       <SiteHeader />
 
       {/* Hero */}
-      <section className="px-5 pb-14 pt-12 sm:pt-16" style={{ backgroundColor: skyBlueBg }}>
-        <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-          <div>
-            <p className="text-xs font-bold tracking-widest" style={{ color: royalBlue }}>
+      <section className="relative overflow-hidden">
+        {hasHeroImage ? (
+          <>
+            <Image
+              src={HERO_IMAGE_PATH}
+              alt="Pelaku usaha lokal Indonesia"
+              fill
+              priority
+              className="object-cover"
+              style={{ objectPosition: "68% 40%" }}
+            />
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(90deg, rgba(4,18,43,0.94) 0%, rgba(4,18,43,0.72) 32%, rgba(4,18,43,0.25) 55%, rgba(4,18,43,0.05) 72%, rgba(4,18,43,0) 100%)",
+              }}
+            />
+          </>
+        ) : (
+          <div
+            className="absolute inset-0"
+            style={{ background: `linear-gradient(120deg, ${deepBlue}, ${royalBlue})` }}
+          />
+        )}
+
+        <div className="relative mx-auto flex min-h-[560px] max-w-6xl flex-col justify-center px-5 py-16 sm:min-h-[640px]">
+          <div className="max-w-lg">
+            <p className="text-xs font-bold tracking-widest text-white/80">
               PLATFORM LOKAL INDONESIA
             </p>
-            <h1 className="mt-3 text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl">
+            <h1 className="mt-3 text-4xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-5xl">
               Temukan yang Ada di Sekitarmu.
             </h1>
-            <p className="mt-4 max-w-md text-base leading-relaxed" style={{ color: "#3a5578" }}>
+            <p className="mt-4 max-w-md text-base leading-relaxed text-white/85">
               Cari usaha, produk, jasa, tempat, dan berbagai kebutuhan lokal dengan lebih mudah bersama SUDROS.
             </p>
 
@@ -200,8 +225,8 @@ export default async function HomePage({
                   href={categoryHref(label)}
                   event="category_clicked"
                   eventProperties={{ label, source: "quick_chip" }}
-                  className="rounded-full border bg-white px-3 py-1.5 text-xs font-medium"
-                  style={{ borderColor: "#cfe0ef", color: deepBlue }}
+                  className="rounded-full border px-3 py-1.5 text-xs font-medium text-white"
+                  style={{ borderColor: "rgba(255,255,255,0.35)", backgroundColor: "rgba(255,255,255,0.1)" }}
                 >
                   {label}
                 </TrackLink>
@@ -211,8 +236,8 @@ export default async function HomePage({
             <div className="mt-7 flex flex-wrap items-center gap-5">
               <a
                 href="#hasil"
-                className="rounded-full px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90"
-                style={{ backgroundColor: deepBlue }}
+                className="rounded-full px-6 py-3 text-sm font-semibold transition hover:opacity-90"
+                style={{ backgroundColor: "white", color: deepBlue }}
               >
                 Jelajahi SUDROS
               </a>
@@ -220,36 +245,11 @@ export default async function HomePage({
                 href="/register"
                 event="register_started"
                 eventProperties={{ source: "hero_secondary" }}
-                className="text-sm font-semibold"
-                style={{ color: royalBlue }}
+                className="text-sm font-semibold text-white underline underline-offset-4"
               >
                 Punya sesuatu untuk ditawarkan? Promosikan di SUDROS →
               </TrackLink>
             </div>
-          </div>
-
-          {/* Mockup listing cards - ilustratif, bukan data terdaftar */}
-          <div className="hidden gap-4 sm:grid sm:grid-cols-2 lg:grid">
-            {heroMockCards.map((card, i) => (
-              <div
-                key={card.name}
-                className={`rounded-2xl bg-white p-4 shadow-md ${i % 2 === 1 ? "sm:translate-y-6" : ""}`}
-              >
-                {card.imageSrc ? (
-                  <div className="relative h-24 w-full overflow-hidden rounded-xl">
-                    <Image src={card.imageSrc} alt={card.name} fill className="object-cover" />
-                  </div>
-                ) : (
-                  <div
-                    className="h-24 w-full rounded-xl"
-                    style={{ background: `linear-gradient(135deg, ${skyBlueBg}, #cfe4f5)` }}
-                  />
-                )}
-                <p className="mt-3 text-sm font-bold">{card.name}</p>
-                <p className="text-xs" style={{ color: mediumBlue }}>{card.category}</p>
-                <p className="mt-1 text-xs text-slate-500">📍 {card.place}</p>
-              </div>
-            ))}
           </div>
         </div>
       </section>
