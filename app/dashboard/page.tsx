@@ -1,6 +1,7 @@
+// AKSI: GANTI TOTAL (tambah tracking listing_created)
 // PATH: app/dashboard/page.tsx
-// AKSI: GANTI TOTAL (header sticky saat scroll)
 
+import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -16,6 +17,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/(auth)/actions";
 import { getUserEntitlements } from "@/lib/entitlements/service";
+import { ListingCreatedTracker } from "@/components/analytics/listing-created-tracker";
 
 type Profile = {
   username: string;
@@ -102,6 +104,10 @@ export default async function DashboardPage() {
       className="mx-auto flex max-w-2xl flex-col gap-4 p-6 md:max-w-5xl md:gap-6 md:p-8"
       style={{ backgroundColor: "var(--background)" }}
     >
+      <Suspense fallback={null}>
+        <ListingCreatedTracker />
+      </Suspense>
+
       {/* Header — sticky, tidak ikut scroll */}
       <div
         className="sticky top-0 z-30 -mx-6 flex items-center justify-between px-6 py-3 md:-mx-8 md:px-8"
@@ -347,4 +353,4 @@ export default async function DashboardPage() {
       </form>
     </main>
   );
-                  }
+}
