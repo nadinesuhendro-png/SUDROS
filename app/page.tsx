@@ -3,9 +3,12 @@
 
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
-import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { slugify } from "@/lib/slug";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { ListingCard, type ListingCardData } from "@/components/listing-card";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -29,33 +32,12 @@ export const metadata: Metadata = {
   },
 };
 
-// Palet "Si Biru"
 const deepBlue = "#0b2a52";
 const royalBlue = "#1d6fb8";
 const mediumBlue = "#2aa8e0";
 const skyBlueBg = "#eef6fc";
 
-type ListingCard = {
-  id: string;
-  title: string;
-  price: number;
-  location_city: string;
-  location_area: string | null;
-  listing_images: { image_url: string; sort_order: number }[];
-};
-
-type Category = {
-  id: string;
-  name: string;
-};
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(price);
-}
+type Category = { id: string; name: string };
 
 const quickCategories = ["Kuliner", "Toko", "Jasa", "Otomotif", "Properti", "Produk Lokal"];
 
@@ -125,17 +107,19 @@ export default async function HomePage({
   if (category) query = query.eq("category_id", category);
   if (city) query = query.ilike("location_city", `%${city}%`);
 
-  const { data: listings } = await query.returns<ListingCard[]>();
+  const { data: listings } = await query.returns<ListingCardData[]>();
 
   const hasActiveFilter = Boolean(q || category || city);
   const listingList = listings || [];
   const cities = Array.from(new Set(listingList.map((l) => l.location_city))).slice(0, 8);
 
+  // Kategori/lokasi punya rute SEO sendiri (/kategori/[slug], /lokasi/[slug]);
+  // fallback ke pencarian teks kalau nama kategorinya belum ada di database.
   function categoryHref(label: string) {
     const match = (categories || []).find(
       (c) => c.name.toLowerCase() === label.toLowerCase()
     );
-    return match ? `/?category=${match.id}#hasil` : `/?q=${encodeURIComponent(label)}#hasil`;
+    return match ? `/kategori/${slugify(match.name)}` : `/?q=${encodeURIComponent(label)}#hasil`;
   }
 
   const jsonLd = {
@@ -157,70 +141,7 @@ export default async function HomePage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* Navbar */}
-      <header className="sticky top-0 z-30 border-b border-black/5 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
-          <Link href="/" className="flex items-center gap-2">
-            <Image src="/brand/sudros-logo.png" alt="SUDROS" width={36} height={36} className="h-8 w-auto" />
-            <span className="text-lg font-extrabold tracking-tight" style={{ color: deepBlue }}>
-              SUDROS
-            </span>
-          </Link>
-
-          <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-            <Link href="/" style={{ color: deepBlue }}>
-              Beranda
-            </Link>
-            <a href="#hasil" style={{ color: deepBlue }}>
-              Jelajahi
-            </a>
-            <a href="#kategori" style={{ color: deepBlue }}>
-              Kategori
-            </a>
-            <a href="#cara-kerja" style={{ color: deepBlue }}>
-              Cara Kerja
-            </a>
-            <a href="#umkm" style={{ color: deepBlue }}>
-              Untuk Bisnis
-            </a>
-          </nav>
-
-          <div className="hidden items-center gap-3 md:flex">
-            <Link href="/login" className="text-sm font-medium" style={{ color: deepBlue }}>
-              Masuk
-            </Link>
-            <Link
-              href="/register"
-              className="rounded-full px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
-              style={{ backgroundColor: royalBlue }}
-            >
-              Daftarkan Usaha
-            </Link>
-          </div>
-
-          {/* Mobile menu (CSS-only checkbox toggle) */}
-          <input type="checkbox" id="nav-toggle" className="peer hidden" />
-          <label htmlFor="nav-toggle" className="cursor-pointer md:hidden" aria-label="Buka menu">
-            <span className="block h-0.5 w-6 bg-[#0b2a52]" />
-            <span className="mt-1.5 block h-0.5 w-6 bg-[#0b2a52]" />
-            <span className="mt-1.5 block h-0.5 w-6 bg-[#0b2a52]" />
-          </label>
-          <div className="fixed inset-x-0 top-[57px] hidden flex-col gap-1 border-b border-black/5 bg-white px-5 py-4 text-sm font-medium peer-checked:flex md:hidden">
-            <a href="#hasil" style={{ color: deepBlue }}>Jelajahi</a>
-            <a href="#kategori" className="mt-3" style={{ color: deepBlue }}>Kategori</a>
-            <a href="#cara-kerja" className="mt-3" style={{ color: deepBlue }}>Cara Kerja</a>
-            <a href="#umkm" className="mt-3" style={{ color: deepBlue }}>Untuk Bisnis</a>
-            <Link href="/login" className="mt-3" style={{ color: deepBlue }}>Masuk</Link>
-            <Link
-              href="/register"
-              className="mt-3 rounded-full px-4 py-2 text-center font-semibold text-white"
-              style={{ backgroundColor: royalBlue }}
-            >
-              Daftarkan Usaha
-            </Link>
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
 
       {/* Hero */}
       <section className="px-5 pb-14 pt-12 sm:pt-16" style={{ backgroundColor: skyBlueBg }}>
@@ -262,14 +183,14 @@ export default async function HomePage({
 
             <div className="mt-4 flex flex-wrap gap-2">
               {quickCategories.map((label) => (
-                <a
+                <Link
                   key={label}
                   href={categoryHref(label)}
                   className="rounded-full border bg-white px-3 py-1.5 text-xs font-medium"
                   style={{ borderColor: "#cfe0ef", color: deepBlue }}
                 >
                   {label}
-                </a>
+                </Link>
               ))}
             </div>
 
@@ -367,7 +288,7 @@ export default async function HomePage({
         </h2>
         <div className="mt-8 grid gap-4 sm:grid-cols-3">
           {offerGrid.map((item) => (
-            <a
+            <Link
               key={item.title}
               href={categoryHref(item.title)}
               className="rounded-2xl border p-5 transition hover:shadow-md"
@@ -376,7 +297,7 @@ export default async function HomePage({
               <span className="text-2xl">{item.icon}</span>
               <p className="mt-2 text-sm font-bold">{item.title}</p>
               <p className="mt-1 text-xs leading-relaxed text-slate-600">{item.body}</p>
-            </a>
+            </Link>
           ))}
         </div>
       </section>
@@ -488,37 +409,9 @@ export default async function HomePage({
             </div>
           ) : (
             <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-              {listingList.map((listing) => {
-                const sortedImages = [...(listing.listing_images || [])].sort(
-                  (a, b) => a.sort_order - b.sort_order
-                );
-                const coverImage = sortedImages[0]?.image_url;
-                return (
-                  <Link
-                    key={listing.id}
-                    href={`/listings/${listing.id}`}
-                    className="flex flex-col overflow-hidden rounded-xl border bg-white"
-                    style={{ borderColor: "#e2ecf6" }}
-                  >
-                    <div className="relative aspect-square w-full bg-slate-100">
-                      {coverImage ? (
-                        <Image src={coverImage} alt={listing.title} fill className="object-cover" />
-                      ) : null}
-                    </div>
-                    <div className="flex flex-col gap-1 p-2.5">
-                      <span className="line-clamp-2 text-sm font-medium">{listing.title}</span>
-                      <span className="text-sm font-semibold" style={{ color: royalBlue }}>
-                        {formatPrice(listing.price)}
-                      </span>
-                      <span className="text-xs text-slate-500">
-                        {listing.location_area
-                          ? `${listing.location_area}, ${listing.location_city}`
-                          : listing.location_city}
-                      </span>
-                    </div>
-                  </Link>
-                );
-              })}
+              {listingList.map((listing) => (
+                <ListingCard key={listing.id} listing={listing} />
+              ))}
             </div>
           )}
         </div>
@@ -534,7 +427,7 @@ export default async function HomePage({
             {cities.map((c) => (
               <Link
                 key={c}
-                href={`/?city=${encodeURIComponent(c)}#hasil`}
+                href={`/lokasi/${slugify(c)}`}
                 className="rounded-full border px-4 py-2 text-sm font-medium"
                 style={{ borderColor: "#dbe8f4", color: deepBlue }}
               >
@@ -591,41 +484,7 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="px-5 py-12 text-sm" style={{ backgroundColor: deepBlue, color: "#c7d7ea" }}>
-        <div className="mx-auto grid max-w-6xl gap-8 sm:grid-cols-4">
-          <div>
-            <span className="text-lg font-extrabold text-white">SUDROS</span>
-            <p className="mt-2 text-xs">Temukan. Tawarkan. Terhubung.</p>
-          </div>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-white/60">SUDROS</p>
-            <ul className="mt-3 space-y-2">
-              <li><a href="#hasil">Jelajahi</a></li>
-              <li><a href="#kategori">Kategori</a></li>
-              <li><Link href="/#hasil">Lokasi</Link></li>
-            </ul>
-          </div>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-white/60">Untuk Bisnis</p>
-            <ul className="mt-3 space-y-2">
-              <li><Link href="/register">Daftarkan Usaha</Link></li>
-              <li><Link href="/dashboard/listings/new">Buat Listing</Link></li>
-              <li><Link href="/pricing">Paket Promosi</Link></li>
-            </ul>
-          </div>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-white/60">Legal</p>
-            <ul className="mt-3 space-y-2">
-              <li><Link href="/terms">Syarat &amp; Ketentuan</Link></li>
-              <li><Link href="/privacy">Kebijakan Privasi</Link></li>
-            </ul>
-          </div>
-        </div>
-        <p className="mx-auto mt-10 max-w-6xl text-xs text-white/50">
-          © {new Date().getFullYear()} SUDROS. All rights reserved.
-        </p>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
