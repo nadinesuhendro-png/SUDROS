@@ -1,4 +1,4 @@
-// AKSI: GANTI SELURUH ISI FILE (tambah generateMetadata untuk SEO & social sharing)
+// AKSI: GANTI SELURUH ISI FILE (tambah tombol Share + tracking social_share_clicked)
 // PATH: app/listings/[id]/page.tsx
 
 import type { Metadata } from "next";
@@ -11,6 +11,7 @@ import ListingGallery from "./ListingGallery";
 import ReportButton from "./ReportButton";
 import FavoriteButton from "./FavoriteButton";
 import WhatsAppButton from "./WhatsAppButton";
+import { ShareButton } from "@/components/share-button";
 import ListingDistanceBadge from "@/components/ListingDistanceBadge";
 import { startConversation } from "@/app/dashboard/messages/actions";
 
@@ -225,7 +226,12 @@ export default async function ListingDetailPage({
           ) : null}
         </div>
 
-        <div className="mt-2 flex justify-center">
+        <div className="mt-2 flex items-center justify-center gap-3">
+          <ShareButton
+            listingId={listing.id}
+            title={listing.title}
+            url={`${SITE_URL}/listings/${listing.id}`}
+          />
           <ReportButton listingId={listing.id} />
         </div>
       </main>
