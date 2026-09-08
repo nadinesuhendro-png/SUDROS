@@ -1,5 +1,5 @@
+// AKSI: GANTI SELURUH ISI FILE (redirect sukses bawa query param buat tracking listing_created)
 // PATH: app/dashboard/listings/actions.ts
-// AKSI: GANTI SELURUH ISI FILE (terima & simpan latitude/longitude dari pin lokasi)
 
 "use server";
 
@@ -133,7 +133,9 @@ export async function createListing(input: CreateListingInput) {
 
   after(() => runModerationAgentForListing(listing.id));
 
-  redirect("/dashboard");
+  // listing_created ditrack di client (server action tidak punya akses window),
+  // jadi redirect bawa query param lalu di-baca oleh ListingCreatedTracker di /dashboard
+  redirect(`/dashboard?listing_created=1&listing_id=${listing.id}`);
 }
 
 export async function deleteListing(formData: FormData) {
