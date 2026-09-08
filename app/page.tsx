@@ -1,9 +1,11 @@
-// AKSI: GANTI SELURUH ISI FILE (atau BUAT FILE BARU kalau app/page.tsx belum ada)
+// AKSI: GANTI SELURUH ISI FILE
 // PATH: app/page.tsx
 
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import Image from "next/image";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -11,315 +13,618 @@ const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
 });
 
+const SITE_URL = "https://www.sudros.id";
+
 export const metadata: Metadata = {
-  title: "SUDROS - Pasar Lokal Dekat Rumahmu",
+  metadataBase: new URL(SITE_URL),
+  title: "SUDROS — Temukan. Tawarkan. Terhubung.",
   description:
-    "Temukan, tawarkan, dan terhubung langsung dengan penjual di kotamu. SUDROS adalah pasar lokal digital, tanpa ongkir mahal dan tanpa perantara.",
+    "Temukan usaha, produk, jasa, tempat, dan berbagai kebutuhan lokal di SUDROS. Punya sesuatu untuk ditawarkan? Promosikan di SUDROS.",
+  openGraph: {
+    title: "SUDROS — Temukan. Tawarkan. Terhubung.",
+    description:
+      "Temukan usaha, produk, jasa, tempat, dan berbagai kebutuhan lokal. Punya sesuatu untuk ditawarkan? Promosikan di SUDROS.",
+    url: SITE_URL,
+    type: "website",
+  },
 };
 
-const brand = {
-  primary: "#1d6fb8",
-  light: "#2aa8e0",
-  navy: "#0b2a52",
-  amber: "#f2a93b",
-  ink: "#10192b",
-  paper: "#f7f8fa",
+// Palet "Si Biru"
+const deepBlue = "#0b2a52";
+const royalBlue = "#1d6fb8";
+const mediumBlue = "#2aa8e0";
+const skyBlueBg = "#eef6fc";
+
+type ListingCard = {
+  id: string;
+  title: string;
+  price: number;
+  location_city: string;
+  location_area: string | null;
+  listing_images: { image_url: string; sort_order: number }[];
 };
 
-const listingMocks = [
-  {
-    label: "Peralatan Makan",
-    price: "Rp120.000",
-    city: "Medan",
-    rotate: "-rotate-3",
-    top: "top-2",
-    gradient: "from-[#dfe9f3] to-[#c7d7ea]",
-  },
-  {
-    label: "Dijual Meja",
-    price: "Rp500.000",
-    city: "Medan",
-    rotate: "rotate-2",
-    top: "top-8",
-    gradient: "from-[#f4e2c7] to-[#ecd0a4]",
-  },
-  {
-    label: "Topi",
-    price: "Rp15.000",
-    city: "Medan",
-    rotate: "-rotate-1",
-    top: "top-0",
-    gradient: "from-[#d9ecdd] to-[#bfe0c7]",
-  },
+type Category = {
+  id: string;
+  name: string;
+};
+
+function formatPrice(price: number) {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(price);
+}
+
+const quickCategories = ["Kuliner", "Toko", "Jasa", "Otomotif", "Properti", "Produk Lokal"];
+
+const offerGrid = [
+  { icon: "🏪", title: "Usaha & Toko", body: "Toko, warung, bisnis lokal, dan berbagai jenis usaha." },
+  { icon: "🍜", title: "Kuliner", body: "Warung makan, restoran, catering, makanan rumahan, kue, dan minuman." },
+  { icon: "🔧", title: "Jasa", body: "Bengkel, laundry, pangkas rambut, servis, renovasi, percetakan." },
+  { icon: "🛍", title: "Produk", body: "Produk UMKM, produk rumahan, kerajinan, dan produk lokal lainnya." },
+  { icon: "🌾", title: "Produk Lokal", body: "Hasil pertanian, perikanan, peternakan, dan hasil laut daerah." },
+  { icon: "🚗", title: "Otomotif", body: "Kendaraan, bengkel, sparepart, aksesori, dan layanan otomotif." },
+  { icon: "🏠", title: "Properti", body: "Rumah, tanah, kos, kontrakan, ruko, dan properti lainnya." },
+  { icon: "💼", title: "Profesional", body: "Jasa profesional, freelancer, konsultan, desain, dan fotografi." },
+  { icon: "📍", title: "Tempat & Aktivitas", body: "Tempat wisata, penginapan, tempat olahraga, event lokal." },
 ];
 
-const steps = [
-  {
-    number: "01",
-    title: "Temukan",
-    body: "Cari barang atau jasa di sekitarmu. Difilter berdasarkan kota, jadi hasilnya memang dekat rumah.",
-  },
-  {
-    number: "02",
-    title: "Tawarkan",
-    body: "Pasang listingmu sendiri lengkap dengan foto dan harga, selesai dalam hitungan menit.",
-  },
-  {
-    number: "03",
-    title: "Terhubung",
-    body: "Chat langsung ke WhatsApp penjual atau pembeli. Tidak ada perantara, tidak ada antrian tiket.",
-  },
+const heroMockCards = [
+  { name: "Bengkel Motor Jaya", category: "Bengkel & Otomotif", place: "Kuala Tanjung" },
+  { name: "Warung Mak Ani", category: "Kuliner", place: "Lima Puluh" },
+  { name: "Ikan Segar Laut Kita", category: "Produk Lokal", place: "Tanjung Tiram" },
+  { name: "Rumah Dijual", category: "Properti", place: "Batu Bara" },
 ];
 
-const categories = [
-  "Makanan & Katering",
-  "Perabotan Rumah",
-  "Fashion",
-  "Elektronik",
-  "Jasa",
-  "Kendaraan",
-  "Properti",
-  "Lainnya",
+const searcherSteps = [
+  { number: "01", title: "Cari", body: "Cari apa yang kamu butuhkan." },
+  { number: "02", title: "Temukan", body: "Lihat informasi, foto, lokasi, dan detail listing." },
+  { number: "03", title: "Terhubung", body: "Hubungi pemilik usaha atau penyedia layanan." },
 ];
 
-const reasons = [
-  {
-    title: "Bukan pasar raksasa",
-    body: "SUDROS dibuat untuk transaksi dekat rumah, bukan tempat kamu bersaing dengan penjual dari luar pulau.",
-  },
-  {
-    title: "Langsung ke WhatsApp",
-    body: "Tidak ada sistem chat rumit di dalam aplikasi. Satu ketukan, langsung ngobrol seperti biasa.",
-  },
-  {
-    title: "Harga yang kamu lihat, itu yang kamu bayar",
-    body: "Tanpa biaya kirim yang tiba-tiba lebih mahal dari barangnya. Ambil sendiri kalau memang dekat.",
-  },
+const ownerSteps = [
+  { number: "01", title: "Daftar", body: "Buat akun SUDROS." },
+  { number: "02", title: "Tawarkan", body: "Buat listing usaha, produk, jasa, atau tempat." },
+  { number: "03", title: "Ditemukan", body: "Bantu calon pelanggan menemukan apa yang kamu tawarkan." },
 ];
 
-export default function LandingPage() {
+const faqs = [
+  { q: "Apa itu SUDROS?", a: "SUDROS adalah platform listing lokal Indonesia untuk menemukan dan mempromosikan usaha, produk, jasa, tempat, dan kebutuhan lokal lainnya." },
+  { q: "Apa saja yang bisa dipromosikan di SUDROS?", a: "Mulai dari usaha dan toko, kuliner, jasa, produk lokal, properti, hingga layanan profesional — apa pun yang bisa ditawarkan secara legal dan relevan." },
+  { q: "Apakah UMKM bisa mendaftarkan usaha?", a: "Bisa. UMKM adalah bagian penting dari ekosistem SUDROS, sekaligus terbuka untuk usaha dan jasa dalam skala apa pun." },
+  { q: "Bagaimana cara membuat listing?", a: "Daftar akun, lalu buat listing dari dashboard dengan menambahkan foto, deskripsi, harga, dan lokasi." },
+  { q: "Apakah saya bisa mencari usaha di sekitar saya?", a: "Bisa. Gunakan kolom pencarian dan filter lokasi di beranda untuk menemukan listing terdekat." },
+  { q: "Bagaimana cara menghubungi pemilik usaha?", a: "Setiap listing menampilkan kontak langsung, biasanya lewat WhatsApp, agar kamu bisa terhubung tanpa perantara." },
+];
+
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; category?: string; city?: string }>;
+}) {
+  const { q, category, city } = await searchParams;
+  const supabase = await createClient();
+
+  const { data: categories } = await supabase
+    .from("categories")
+    .select("id, name")
+    .order("name")
+    .returns<Category[]>();
+
+  let query = supabase
+    .from("listings")
+    .select(
+      "id, title, price, location_city, location_area, listing_images(image_url, sort_order)"
+    )
+    .order("created_at", { ascending: false })
+    .limit(24);
+
+  if (q) query = query.ilike("title", `%${q}%`);
+  if (category) query = query.eq("category_id", category);
+  if (city) query = query.ilike("location_city", `%${city}%`);
+
+  const { data: listings } = await query.returns<ListingCard[]>();
+
+  const hasActiveFilter = Boolean(q || category || city);
+  const listingList = listings || [];
+  const cities = Array.from(new Set(listingList.map((l) => l.location_city))).slice(0, 8);
+
+  function categoryHref(label: string) {
+    const match = (categories || []).find(
+      (c) => c.name.toLowerCase() === label.toLowerCase()
+    );
+    return match ? `/?category=${match.id}#hasil` : `/?q=${encodeURIComponent(label)}#hasil`;
+  }
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "SUDROS",
+    url: SITE_URL,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${SITE_URL}/?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
-    <div className={`${jakarta.variable} font-sans`} style={{ color: brand.ink }}>
-      {/* Header */}
-      <header className="sticky top-0 z-20 border-b border-black/5 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
-          <span className="text-lg font-extrabold tracking-tight" style={{ color: brand.navy }}>
-            SUDROS
-          </span>
-          <nav className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="text-sm font-medium text-slate-600 hover:text-slate-900"
-            >
+    <div className={`${jakarta.variable} font-sans`} style={{ color: deepBlue }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
+      {/* Navbar */}
+      <header className="sticky top-0 z-30 border-b border-black/5 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
+          <Link href="/" className="flex items-center gap-2">
+            <Image src="/brand/sudros-logo.png" alt="SUDROS" width={36} height={36} className="h-8 w-auto" />
+            <span className="text-lg font-extrabold tracking-tight" style={{ color: deepBlue }}>
+              SUDROS
+            </span>
+          </Link>
+
+          <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
+            <Link href="/" style={{ color: deepBlue }}>
+              Beranda
+            </Link>
+            <a href="#hasil" style={{ color: deepBlue }}>
+              Jelajahi
+            </a>
+            <a href="#kategori" style={{ color: deepBlue }}>
+              Kategori
+            </a>
+            <a href="#cara-kerja" style={{ color: deepBlue }}>
+              Cara Kerja
+            </a>
+            <a href="#umkm" style={{ color: deepBlue }}>
+              Untuk Bisnis
+            </a>
+          </nav>
+
+          <div className="hidden items-center gap-3 md:flex">
+            <Link href="/login" className="text-sm font-medium" style={{ color: deepBlue }}>
               Masuk
             </Link>
             <Link
               href="/register"
               className="rounded-full px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
-              style={{ backgroundColor: brand.primary }}
+              style={{ backgroundColor: royalBlue }}
             >
-              Daftar
+              Daftarkan Usaha
             </Link>
-          </nav>
+          </div>
+
+          {/* Mobile menu (CSS-only checkbox toggle) */}
+          <input type="checkbox" id="nav-toggle" className="peer hidden" />
+          <label htmlFor="nav-toggle" className="cursor-pointer md:hidden" aria-label="Buka menu">
+            <span className="block h-0.5 w-6 bg-[#0b2a52]" />
+            <span className="mt-1.5 block h-0.5 w-6 bg-[#0b2a52]" />
+            <span className="mt-1.5 block h-0.5 w-6 bg-[#0b2a52]" />
+          </label>
+          <div className="fixed inset-x-0 top-[57px] hidden flex-col gap-1 border-b border-black/5 bg-white px-5 py-4 text-sm font-medium peer-checked:flex md:hidden">
+            <a href="#hasil" style={{ color: deepBlue }}>Jelajahi</a>
+            <a href="#kategori" className="mt-3" style={{ color: deepBlue }}>Kategori</a>
+            <a href="#cara-kerja" className="mt-3" style={{ color: deepBlue }}>Cara Kerja</a>
+            <a href="#umkm" className="mt-3" style={{ color: deepBlue }}>Untuk Bisnis</a>
+            <Link href="/login" className="mt-3" style={{ color: deepBlue }}>Masuk</Link>
+            <Link
+              href="/register"
+              className="mt-3 rounded-full px-4 py-2 text-center font-semibold text-white"
+              style={{ backgroundColor: royalBlue }}
+            >
+              Daftarkan Usaha
+            </Link>
+          </div>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="mx-auto max-w-6xl px-5 pb-20 pt-14 sm:pt-20">
-        <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+      <section className="px-5 pb-14 pt-12 sm:pt-16" style={{ backgroundColor: skyBlueBg }}>
+        <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div>
-            <p
-              className="text-sm font-semibold"
-              style={{ color: brand.primary }}
-            >
-              Temukan. Tawarkan. Terhubung.
+            <p className="text-xs font-bold tracking-widest" style={{ color: royalBlue }}>
+              PLATFORM LOKAL INDONESIA
             </p>
-            <h1 className="mt-4 text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl">
-              Beli-jual dekat rumah, tanpa basa-basi ongkir.
+            <h1 className="mt-3 text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl">
+              Temukan yang Ada di Sekitarmu.
             </h1>
-            <p className="mt-5 max-w-md text-base leading-relaxed text-slate-600">
-              SUDROS menghubungkan kamu langsung dengan penjual di kotamu.
-              Lihat barangnya, chat lewat WhatsApp, ambil sendiri kalau mau.
+            <p className="mt-4 max-w-md text-base leading-relaxed" style={{ color: "#3a5578" }}>
+              Cari usaha, produk, jasa, tempat, dan berbagai kebutuhan lokal dengan lebih mudah bersama SUDROS.
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link
-                href="/register"
-                className="rounded-full px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
-                style={{ backgroundColor: brand.amber, color: brand.ink }}
+
+            <form method="GET" action="/#hasil" className="mt-7 flex flex-col gap-2 rounded-2xl bg-white p-2 shadow-lg sm:flex-row">
+              <input
+                type="text"
+                name="q"
+                defaultValue={q || ""}
+                placeholder="Cari usaha, produk, jasa, atau tempat..."
+                className="flex-1 rounded-xl border-0 px-4 py-3 text-sm focus:outline-none"
+              />
+              <input
+                type="text"
+                name="city"
+                defaultValue={city || ""}
+                placeholder="📍 Di mana?"
+                className="rounded-xl border-0 px-4 py-3 text-sm focus:outline-none sm:w-40"
+              />
+              <button
+                type="submit"
+                className="rounded-xl px-6 py-3 text-sm font-semibold text-white"
+                style={{ backgroundColor: royalBlue }}
               >
-                Mulai Jual
-              </Link>
-              <Link
-                href="/dashboard/explore"
-                className="rounded-full border px-6 py-3 text-sm font-semibold transition hover:bg-slate-50"
-                style={{ borderColor: brand.navy, color: brand.navy }}
+                Cari
+              </button>
+            </form>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {quickCategories.map((label) => (
+                <a
+                  key={label}
+                  href={categoryHref(label)}
+                  className="rounded-full border bg-white px-3 py-1.5 text-xs font-medium"
+                  style={{ borderColor: "#cfe0ef", color: deepBlue }}
+                >
+                  {label}
+                </a>
+              ))}
+            </div>
+
+            <div className="mt-7 flex flex-wrap items-center gap-5">
+              <a
+                href="#hasil"
+                className="rounded-full px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+                style={{ backgroundColor: deepBlue }}
               >
-                Lihat Listing
+                Jelajahi SUDROS
+              </a>
+              <Link href="/register" className="text-sm font-semibold" style={{ color: royalBlue }}>
+                Punya sesuatu untuk ditawarkan? Promosikan di SUDROS →
               </Link>
             </div>
-            <p className="mt-5 text-sm text-slate-500">
-              Sudah dipakai penjual di Medan dan sekitarnya.
-            </p>
           </div>
 
-          {/* Collage: mading digital ala papan pengumuman */}
-          <div className="relative mx-auto h-[340px] w-full max-w-sm sm:h-[380px]">
-            {listingMocks.map((item) => (
+          {/* Mockup listing cards - ilustratif, bukan data terdaftar */}
+          <div className="hidden gap-4 sm:grid sm:grid-cols-2 lg:grid">
+            {heroMockCards.map((card, i) => (
               <div
-                key={item.label}
-                className={`absolute ${item.top} ${item.rotate} w-52 rounded-xl border border-black/5 bg-white p-3 shadow-lg transition hover:-translate-y-1`}
-                style={{
-                  left: item.label === "Topi" ? "40%" : item.label === "Dijual Meja" ? "8%" : "auto",
-                  right: item.label === "Peralatan Makan" ? "4%" : "auto",
-                }}
+                key={card.name}
+                className={`rounded-2xl bg-white p-4 shadow-md ${i % 2 === 1 ? "sm:translate-y-6" : ""}`}
               >
                 <div
-                  className={`h-28 w-full rounded-lg bg-gradient-to-br ${item.gradient}`}
+                  className="h-24 w-full rounded-xl"
+                  style={{ background: `linear-gradient(135deg, ${skyBlueBg}, #cfe4f5)` }}
                 />
-                <p className="mt-3 text-sm font-semibold">{item.label}</p>
-                <p
-                  className="text-sm font-bold"
-                  style={{ color: brand.primary }}
-                >
-                  {item.price}
-                </p>
-                <p className="text-xs text-slate-500">{item.city}</p>
+                <p className="mt-3 text-sm font-bold">{card.name}</p>
+                <p className="text-xs" style={{ color: mediumBlue }}>{card.category}</p>
+                <p className="mt-1 text-xs text-slate-500">📍 {card.place}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* 3 Langkah */}
-      <section className="border-t border-black/5" style={{ backgroundColor: brand.paper }}>
-        <div className="mx-auto max-w-6xl px-5 py-16">
-          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-            Tiga langkah, itu saja.
-          </h2>
-          <div className="mt-10 grid gap-8 sm:grid-cols-3">
-            {steps.map((step) => (
-              <div key={step.number}>
-                <span
-                  className="text-sm font-bold"
-                  style={{ color: brand.light }}
-                >
-                  {step.number}
-                </span>
-                <h3 className="mt-2 text-lg font-bold">{step.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                  {step.body}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Kategori */}
+      {/* Value proposition */}
       <section className="mx-auto max-w-6xl px-5 py-16">
         <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-          Apa saja bisa dijual.
+          Satu Tempat untuk Menemukan dan Menawarkan.
         </h2>
-        <div className="mt-6 flex flex-wrap gap-3">
-          {categories.map((cat) => (
-            <span
-              key={cat}
-              className="rounded-full border px-4 py-2 text-sm font-medium"
-              style={{ borderColor: "#dbe4ee", color: brand.navy }}
+        <div className="mt-8 grid gap-6 sm:grid-cols-2">
+          <div className="rounded-2xl border p-6" style={{ borderColor: "#dbe8f4" }}>
+            <p className="text-sm font-bold" style={{ color: royalBlue }}>Sedang mencari sesuatu?</p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              Cari usaha, produk, jasa, tempat, dan kebutuhan lokal di sekitar Anda.
+            </p>
+            <a href="#hasil" className="mt-4 inline-block text-sm font-semibold" style={{ color: royalBlue }}>
+              Mulai Mencari →
+            </a>
+          </div>
+          <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: deepBlue }}>
+            <p className="text-sm font-bold">Punya sesuatu untuk ditawarkan?</p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-200">
+              Promosikan usaha, produk, jasa, atau layanan Anda agar lebih mudah ditemukan.
+            </p>
+            <Link href="/register" className="mt-4 inline-block text-sm font-semibold text-white underline">
+              Promosikan di SUDROS →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Core message */}
+      <section className="px-5 py-20 text-center text-white" style={{ backgroundColor: royalBlue }}>
+        <div className="mx-auto max-w-3xl">
+          <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+            Punya Sesuatu untuk Ditawarkan?
+          </h2>
+          <p className="mt-1 text-3xl font-extrabold tracking-tight text-white/90 sm:text-4xl">
+            Promosikan di SUDROS.
+          </p>
+          <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-white/85">
+            Dari usaha kecil hingga bisnis yang sedang berkembang, dari produk lokal hingga jasa profesional.
+            SUDROS membantu membuat apa yang Anda tawarkan lebih mudah ditemukan.
+          </p>
+          <Link
+            href="/register"
+            className="mt-7 inline-block rounded-full bg-white px-7 py-3 text-sm font-semibold"
+            style={{ color: royalBlue }}
+          >
+            Daftarkan Listing
+          </Link>
+          <p className="mt-4 text-xs text-white/70">
+            Temukan pelanggan. Bangun kehadiran digital. Tumbuh bersama lokal.
+          </p>
+        </div>
+      </section>
+
+      {/* Apa yang bisa ditawarkan */}
+      <section id="kategori" className="mx-auto max-w-6xl px-5 py-16">
+        <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+          Apa yang Bisa Kamu Tawarkan?
+        </h2>
+        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+          {offerGrid.map((item) => (
+            <a
+              key={item.title}
+              href={categoryHref(item.title)}
+              className="rounded-2xl border p-5 transition hover:shadow-md"
+              style={{ borderColor: "#dbe8f4" }}
             >
-              {cat}
-            </span>
+              <span className="text-2xl">{item.icon}</span>
+              <p className="mt-2 text-sm font-bold">{item.title}</p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-600">{item.body}</p>
+            </a>
           ))}
         </div>
       </section>
 
-      {/* Kenapa SUDROS */}
-      <section className="border-t border-black/5 px-5 py-16" style={{ backgroundColor: brand.navy }}>
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-            Kenapa bukan pasar besar saja?
+      {/* Dari lokal untuk lokal */}
+      <section className="px-5 py-16" style={{ backgroundColor: skyBlueBg }}>
+        <div className="mx-auto max-w-4xl text-center">
+          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+            Dari Lokal, Untuk Lokal.
           </h2>
-          <div className="mt-10 grid gap-8 sm:grid-cols-3">
-            {reasons.map((reason) => (
-              <div key={reason.title}>
-                <h3 className="text-base font-bold text-white">
-                  {reason.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-300">
-                  {reason.body}
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-600">
+            Banyak hal hebat tumbuh di sekitar kita. SUDROS hadir untuk membantu usaha, produk, jasa,
+            dan potensi lokal lebih mudah ditemukan.
+          </p>
+          <p className="mt-5 text-sm font-semibold" style={{ color: royalBlue }}>
+            Setiap usaha punya cerita. Setiap daerah punya potensi.
+          </p>
+        </div>
+      </section>
+
+      {/* UMKM */}
+      <section id="umkm" className="px-5 py-16 text-white" style={{ backgroundColor: deepBlue }}>
+        <div className="mx-auto max-w-3xl text-center">
+          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+            Bantu Usaha Lokal Lebih Mudah Ditemukan.
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-white/85">
+            Punya warung, bengkel, toko, usaha rumahan, jasa, atau produk lokal? Hadirkan usaha Anda di SUDROS.
+          </p>
+          <ul className="mx-auto mt-6 grid max-w-md gap-2 text-left text-sm text-white/90">
+            <li>✓ Buat listing usaha</li>
+            <li>✓ Tampilkan produk dan layanan</li>
+            <li>✓ Tambahkan lokasi dan informasi usaha</li>
+            <li>✓ Terhubung langsung dengan calon pelanggan</li>
+          </ul>
+          <Link
+            href="/register"
+            className="mt-7 inline-block rounded-full bg-white px-7 py-3 text-sm font-semibold"
+            style={{ color: deepBlue }}
+          >
+            Daftarkan Usaha Saya
+          </Link>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section id="cara-kerja" className="mx-auto max-w-6xl px-5 py-16">
+        <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Semudah 3 Langkah.</h2>
+        <div className="mt-8 grid gap-10 sm:grid-cols-2">
+          <div>
+            <p className="text-sm font-bold" style={{ color: royalBlue }}>Untuk Pencari</p>
+            <div className="mt-4 space-y-4">
+              {searcherSteps.map((s) => (
+                <div key={s.number}>
+                  <span className="text-xs font-bold" style={{ color: mediumBlue }}>{s.number}</span>
+                  <p className="text-sm font-bold">{s.title}</p>
+                  <p className="text-sm text-slate-600">{s.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-sm font-bold" style={{ color: royalBlue }}>Untuk Pemilik Usaha</p>
+            <div className="mt-4 space-y-4">
+              {ownerSteps.map((s) => (
+                <div key={s.number}>
+                  <span className="text-xs font-bold" style={{ color: mediumBlue }}>{s.number}</span>
+                  <p className="text-sm font-bold">{s.title}</p>
+                  <p className="text-sm text-slate-600">{s.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured / hasil pencarian - data asli */}
+      <section id="hasil" className="px-5 py-16" style={{ backgroundColor: skyBlueBg }}>
+        <div className="mx-auto max-w-6xl">
+          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+            {hasActiveFilter ? "Hasil Pencarian" : "Temukan di Sekitarmu"}
+          </h2>
+
+          {hasActiveFilter ? (
+            <Link href="/#hasil" className="mt-2 inline-block text-xs text-slate-500 underline">
+              Reset filter
+            </Link>
+          ) : null}
+
+          {listingList.length === 0 ? (
+            <div className="mt-8 rounded-2xl border border-dashed p-10 text-center" style={{ borderColor: "#cfe0ef" }}>
+              <p className="text-sm font-semibold" style={{ color: deepBlue }}>
+                {hasActiveFilter
+                  ? "Tidak ada listing yang cocok dengan pencarian."
+                  : "SUDROS sedang berkembang."}
+              </p>
+              {!hasActiveFilter && (
+                <p className="mt-1 text-sm text-slate-600">
+                  Jadilah salah satu yang pertama menawarkan sesuatu di SUDROS.
                 </p>
-              </div>
+              )}
+              <Link
+                href="/register"
+                className="mt-4 inline-block rounded-full px-6 py-2.5 text-sm font-semibold text-white"
+                style={{ backgroundColor: royalBlue }}
+              >
+                Buat Listing Pertama
+              </Link>
+            </div>
+          ) : (
+            <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+              {listingList.map((listing) => {
+                const sortedImages = [...(listing.listing_images || [])].sort(
+                  (a, b) => a.sort_order - b.sort_order
+                );
+                const coverImage = sortedImages[0]?.image_url;
+                return (
+                  <Link
+                    key={listing.id}
+                    href={`/listings/${listing.id}`}
+                    className="flex flex-col overflow-hidden rounded-xl border bg-white"
+                    style={{ borderColor: "#e2ecf6" }}
+                  >
+                    <div className="relative aspect-square w-full bg-slate-100">
+                      {coverImage ? (
+                        <Image src={coverImage} alt={listing.title} fill className="object-cover" />
+                      ) : null}
+                    </div>
+                    <div className="flex flex-col gap-1 p-2.5">
+                      <span className="line-clamp-2 text-sm font-medium">{listing.title}</span>
+                      <span className="text-sm font-semibold" style={{ color: royalBlue }}>
+                        {formatPrice(listing.price)}
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        {listing.location_area
+                          ? `${listing.location_area}, ${listing.location_city}`
+                          : listing.location_city}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Local discovery - hanya kota yang benar-benar ada listingnya */}
+      {cities.length > 0 && (
+        <section className="mx-auto max-w-6xl px-5 py-16">
+          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+            Temukan Berdasarkan Lokasi.
+          </h2>
+          <div className="mt-6 flex flex-wrap gap-3">
+            {cities.map((c) => (
+              <Link
+                key={c}
+                href={`/?city=${encodeURIComponent(c)}#hasil`}
+                className="rounded-full border px-4 py-2 text-sm font-medium"
+                style={{ borderColor: "#dbe8f4", color: deepBlue }}
+              >
+                📍 {c}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* FAQ */}
+      <section className="px-5 py-16" style={{ backgroundColor: skyBlueBg }}>
+        <div className="mx-auto max-w-3xl">
+          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+            Pertanyaan yang Sering Ditanyakan.
+          </h2>
+          <div className="mt-6 divide-y" style={{ borderColor: "#dbe8f4" }}>
+            {faqs.map((item) => (
+              <details key={item.q} className="group py-4">
+                <summary className="cursor-pointer list-none text-sm font-semibold" style={{ color: deepBlue }}>
+                  {item.q}
+                </summary>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.a}</p>
+              </details>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Harga */}
-      <section className="mx-auto max-w-6xl px-5 py-16">
-        <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-          Mulai gratis, upgrade kalau perlu.
-        </h2>
-        <div className="mt-10 grid gap-6 sm:grid-cols-2">
-          <div className="rounded-2xl border border-black/5 p-6">
-            <p className="text-sm font-semibold text-slate-500">Free</p>
-            <p className="mt-2 text-2xl font-extrabold">Rp0</p>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">
-              Pasang listing dasar dan mulai jualan tanpa biaya apa pun.
-            </p>
-          </div>
-          <div
-            className="rounded-2xl border p-6"
-            style={{ borderColor: brand.primary, backgroundColor: "#eef5fb" }}
-          >
-            <p className="text-sm font-semibold" style={{ color: brand.primary }}>
-              Business
-            </p>
-            <p className="mt-2 text-2xl font-extrabold">
-              Rp149.000<span className="text-sm font-medium text-slate-500">/bulan</span>
-            </p>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">
-              Untuk penjual yang butuh listing lebih banyak dan tampil lebih menonjol.
-            </p>
-          </div>
-        </div>
-        <Link
-          href="/pricing"
-          className="mt-6 inline-block text-sm font-semibold"
-          style={{ color: brand.primary }}
-        >
-          Lihat semua paket
-        </Link>
-      </section>
-
-      {/* CTA Footer */}
-      <section className="px-5 py-16" style={{ backgroundColor: brand.amber }}>
-        <div className="mx-auto max-w-6xl text-center">
-          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl" style={{ color: brand.ink }}>
-            Jadi penjual pertama di lingkunganmu.
+      {/* Final CTA */}
+      <section className="px-5 py-16 text-center text-white" style={{ backgroundColor: royalBlue }}>
+        <div className="mx-auto max-w-2xl">
+          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+            Punya Sesuatu untuk Ditawarkan?
           </h2>
-          <Link
-            href="/register"
-            className="mt-6 inline-block rounded-full px-8 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
-            style={{ backgroundColor: brand.navy }}
-          >
-            Daftar Sekarang
-          </Link>
+          <p className="mt-3 text-sm text-white/85">
+            Promosikan di SUDROS dan bantu lebih banyak orang menemukan apa yang kamu tawarkan.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <Link
+              href="/register"
+              className="rounded-full bg-white px-6 py-3 text-sm font-semibold"
+              style={{ color: royalBlue }}
+            >
+              Promosikan di SUDROS
+            </Link>
+            <a href="#hasil" className="rounded-full border border-white px-6 py-3 text-sm font-semibold text-white">
+              Jelajahi SUDROS
+            </a>
+          </div>
+          <p className="mt-5 text-xs font-medium tracking-wide text-white/70">
+            Temukan. Tawarkan. Terhubung.
+          </p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-black/5 px-5 py-10 text-sm text-slate-500">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
-          <span>&copy; {new Date().getFullYear()} SUDROS</span>
-          <div className="flex gap-5">
-            <Link href="/terms" className="hover:text-slate-800">
-              Syarat &amp; Ketentuan
-            </Link>
-            <Link href="/privacy" className="hover:text-slate-800">
-              Kebijakan Privasi
-            </Link>
+      <footer className="px-5 py-12 text-sm" style={{ backgroundColor: deepBlue, color: "#c7d7ea" }}>
+        <div className="mx-auto grid max-w-6xl gap-8 sm:grid-cols-4">
+          <div>
+            <span className="text-lg font-extrabold text-white">SUDROS</span>
+            <p className="mt-2 text-xs">Temukan. Tawarkan. Terhubung.</p>
+          </div>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-white/60">SUDROS</p>
+            <ul className="mt-3 space-y-2">
+              <li><a href="#hasil">Jelajahi</a></li>
+              <li><a href="#kategori">Kategori</a></li>
+              <li><Link href="/#hasil">Lokasi</Link></li>
+            </ul>
+          </div>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-white/60">Untuk Bisnis</p>
+            <ul className="mt-3 space-y-2">
+              <li><Link href="/register">Daftarkan Usaha</Link></li>
+              <li><Link href="/dashboard/listings/new">Buat Listing</Link></li>
+              <li><Link href="/pricing">Paket Promosi</Link></li>
+            </ul>
+          </div>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-white/60">Legal</p>
+            <ul className="mt-3 space-y-2">
+              <li><Link href="/terms">Syarat &amp; Ketentuan</Link></li>
+              <li><Link href="/privacy">Kebijakan Privasi</Link></li>
+            </ul>
           </div>
         </div>
+        <p className="mx-auto mt-10 max-w-6xl text-xs text-white/50">
+          © {new Date().getFullYear()} SUDROS. All rights reserved.
+        </p>
       </footer>
     </div>
   );
