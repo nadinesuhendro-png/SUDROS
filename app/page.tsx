@@ -1,4 +1,4 @@
-// AKSI: GANTI SELURUH ISI FILE
+// AKSI: GANTI SELURUH ISI FILE (tambah event tracking analytics)
 // PATH: app/page.tsx
 
 import type { Metadata } from "next";
@@ -9,6 +9,9 @@ import { slugify } from "@/lib/slug";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { ListingCard, type ListingCardData } from "@/components/listing-card";
+import { TrackLink } from "@/components/analytics/track-link";
+import { TrackedSearchForm } from "@/components/analytics/tracked-search-form";
+import { PageViewTracker } from "@/components/analytics/page-view-tracker";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -140,6 +143,7 @@ export default async function HomePage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <PageViewTracker event="landing_page_view" />
 
       <SiteHeader />
 
@@ -157,7 +161,7 @@ export default async function HomePage({
               Cari usaha, produk, jasa, tempat, dan berbagai kebutuhan lokal dengan lebih mudah bersama SUDROS.
             </p>
 
-            <form method="GET" action="/#hasil" className="mt-7 flex flex-col gap-2 rounded-2xl bg-white p-2 shadow-lg sm:flex-row">
+            <TrackedSearchForm method="GET" action="/#hasil" className="mt-7 flex flex-col gap-2 rounded-2xl bg-white p-2 shadow-lg sm:flex-row">
               <input
                 type="text"
                 name="q"
@@ -179,18 +183,20 @@ export default async function HomePage({
               >
                 Cari
               </button>
-            </form>
+            </TrackedSearchForm>
 
             <div className="mt-4 flex flex-wrap gap-2">
               {quickCategories.map((label) => (
-                <Link
+                <TrackLink
                   key={label}
                   href={categoryHref(label)}
+                  event="category_clicked"
+                  eventProperties={{ label, source: "quick_chip" }}
                   className="rounded-full border bg-white px-3 py-1.5 text-xs font-medium"
                   style={{ borderColor: "#cfe0ef", color: deepBlue }}
                 >
                   {label}
-                </Link>
+                </TrackLink>
               ))}
             </div>
 
@@ -202,9 +208,15 @@ export default async function HomePage({
               >
                 Jelajahi SUDROS
               </a>
-              <Link href="/register" className="text-sm font-semibold" style={{ color: royalBlue }}>
+              <TrackLink
+                href="/register"
+                event="register_started"
+                eventProperties={{ source: "hero_secondary" }}
+                className="text-sm font-semibold"
+                style={{ color: royalBlue }}
+              >
                 Punya sesuatu untuk ditawarkan? Promosikan di SUDROS →
-              </Link>
+              </TrackLink>
             </div>
           </div>
 
@@ -248,9 +260,14 @@ export default async function HomePage({
             <p className="mt-2 text-sm leading-relaxed text-slate-200">
               Promosikan usaha, produk, jasa, atau layanan Anda agar lebih mudah ditemukan.
             </p>
-            <Link href="/register" className="mt-4 inline-block text-sm font-semibold text-white underline">
+            <TrackLink
+              href="/register"
+              event="register_started"
+              eventProperties={{ source: "value_prop" }}
+              className="mt-4 inline-block text-sm font-semibold text-white underline"
+            >
               Promosikan di SUDROS →
-            </Link>
+            </TrackLink>
           </div>
         </div>
       </section>
@@ -268,13 +285,15 @@ export default async function HomePage({
             Dari usaha kecil hingga bisnis yang sedang berkembang, dari produk lokal hingga jasa profesional.
             SUDROS membantu membuat apa yang Anda tawarkan lebih mudah ditemukan.
           </p>
-          <Link
+          <TrackLink
             href="/register"
+            event="register_started"
+            eventProperties={{ source: "core_message" }}
             className="mt-7 inline-block rounded-full bg-white px-7 py-3 text-sm font-semibold"
             style={{ color: royalBlue }}
           >
             Daftarkan Listing
-          </Link>
+          </TrackLink>
           <p className="mt-4 text-xs text-white/70">
             Temukan pelanggan. Bangun kehadiran digital. Tumbuh bersama lokal.
           </p>
@@ -288,16 +307,18 @@ export default async function HomePage({
         </h2>
         <div className="mt-8 grid gap-4 sm:grid-cols-3">
           {offerGrid.map((item) => (
-            <Link
+            <TrackLink
               key={item.title}
               href={categoryHref(item.title)}
+              event="category_clicked"
+              eventProperties={{ label: item.title, source: "offer_grid" }}
               className="rounded-2xl border p-5 transition hover:shadow-md"
               style={{ borderColor: "#dbe8f4" }}
             >
               <span className="text-2xl">{item.icon}</span>
               <p className="mt-2 text-sm font-bold">{item.title}</p>
               <p className="mt-1 text-xs leading-relaxed text-slate-600">{item.body}</p>
-            </Link>
+            </TrackLink>
           ))}
         </div>
       </section>
@@ -333,13 +354,15 @@ export default async function HomePage({
             <li>✓ Tambahkan lokasi dan informasi usaha</li>
             <li>✓ Terhubung langsung dengan calon pelanggan</li>
           </ul>
-          <Link
+          <TrackLink
             href="/register"
+            event="register_started"
+            eventProperties={{ source: "umkm_section" }}
             className="mt-7 inline-block rounded-full bg-white px-7 py-3 text-sm font-semibold"
             style={{ color: deepBlue }}
           >
             Daftarkan Usaha Saya
-          </Link>
+          </TrackLink>
         </div>
       </section>
 
@@ -399,13 +422,15 @@ export default async function HomePage({
                   Jadilah salah satu yang pertama menawarkan sesuatu di SUDROS.
                 </p>
               )}
-              <Link
+              <TrackLink
                 href="/register"
+                event="register_started"
+                eventProperties={{ source: "hasil_empty_state" }}
                 className="mt-4 inline-block rounded-full px-6 py-2.5 text-sm font-semibold text-white"
                 style={{ backgroundColor: royalBlue }}
               >
                 Buat Listing Pertama
-              </Link>
+              </TrackLink>
             </div>
           ) : (
             <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
@@ -425,14 +450,16 @@ export default async function HomePage({
           </h2>
           <div className="mt-6 flex flex-wrap gap-3">
             {cities.map((c) => (
-              <Link
+              <TrackLink
                 key={c}
                 href={`/lokasi/${slugify(c)}`}
+                event="location_clicked"
+                eventProperties={{ city: c }}
                 className="rounded-full border px-4 py-2 text-sm font-medium"
                 style={{ borderColor: "#dbe8f4", color: deepBlue }}
               >
                 📍 {c}
-              </Link>
+              </TrackLink>
             ))}
           </div>
         </section>
@@ -467,13 +494,15 @@ export default async function HomePage({
             Promosikan di SUDROS dan bantu lebih banyak orang menemukan apa yang kamu tawarkan.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link
+            <TrackLink
               href="/register"
+              event="register_started"
+              eventProperties={{ source: "final_cta" }}
               className="rounded-full bg-white px-6 py-3 text-sm font-semibold"
               style={{ color: royalBlue }}
             >
               Promosikan di SUDROS
-            </Link>
+            </TrackLink>
             <a href="#hasil" className="rounded-full border border-white px-6 py-3 text-sm font-semibold text-white">
               Jelajahi SUDROS
             </a>
