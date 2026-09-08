@@ -1,9 +1,10 @@
+// AKSI: GANTI SELURUH ISI FILE (tambah tracking whatsapp_clicked)
 // PATH: app/listings/[id]/WhatsAppButton.tsx
-// AKSI: BUAT FILE BARU
 
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import { track } from "@/lib/analytics/track";
 
 export default function WhatsAppButton({
   listingId,
@@ -15,6 +16,7 @@ export default function WhatsAppButton({
   async function handleClick() {
     const supabase = createClient();
     await supabase.rpc("increment_whatsapp_click", { p_listing_id: listingId });
+    track("whatsapp_clicked", { listing_id: listingId });
     window.open(waLink, "_blank", "noopener,noreferrer");
   }
 
