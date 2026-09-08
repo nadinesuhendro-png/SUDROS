@@ -1,6 +1,7 @@
+// AKSI: GANTI SELURUH ISI FILE (tambah generateMetadata untuk SEO & social sharing)
 // PATH: app/listings/[id]/page.tsx
-// AKSI: GANTI SELURUH ISI FILE (tambah badge jarak dari ListingDistanceBadge)
 
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -12,6 +13,8 @@ import FavoriteButton from "./FavoriteButton";
 import WhatsAppButton from "./WhatsAppButton";
 import ListingDistanceBadge from "@/components/ListingDistanceBadge";
 import { startConversation } from "@/app/dashboard/messages/actions";
+
+const SITE_URL = "https://www.sudros.id";
 
 type ListingDetail = {
   id: string;
@@ -32,12 +35,57 @@ type ListingDetail = {
   } | null;
 };
 
+type ListingMetaData = {
+  title: string;
+  location_city: string;
+  location_area: string | null;
+  categories: { name: string } | null;
+};
+
 function formatPrice(price: number) {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
     maximumFractionDigits: 0,
   }).format(price);
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+
+  const { data: listing } = await supabase
+    .from("listings")
+    .select("title, location_city, location_area, categories(name)")
+    .eq("id", id)
+    .single<ListingMetaData>();
+
+  if (!listing) return {};
+
+  const location = listing.location_area
+    ? `${listing.location_area}, ${listing.location_city}`
+    : listing.location_city;
+  const categoryName = listing.categories?.name;
+  const title = categoryName
+    ? `${listing.title} — ${categoryName} | SUDROS`
+    : `${listing.title} | SUDROS`;
+  const description = `Temukan ${listing.title} di ${location}. Lihat informasi, foto, layanan, dan detail lainnya di SUDROS.`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `${SITE_URL}/listings/${id}` },
+    openGraph: {
+      title,
+      description,
+      url: `${SITE_URL}/listings/${id}`,
+      type: "website",
+    },
+  };
 }
 
 export default async function ListingDetailPage({
