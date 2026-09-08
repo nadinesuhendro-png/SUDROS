@@ -23,4 +23,3 @@ export function TrackLink({ event, eventProperties, onClick, ...props }: Props) 
     />
   );
 }
-
