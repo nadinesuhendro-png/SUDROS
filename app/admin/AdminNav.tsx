@@ -1,5 +1,5 @@
 // PATH: app/admin/AdminNav.tsx
-// AKSI: GANTI TOTAL
+// AKSI: GANTI TOTAL (tambah link Saran & Masukan)
 
 "use client";
 
@@ -18,6 +18,7 @@ const navItems = [
   { href: "/admin/marketing", label: "Marketing" },
   { href: "/admin/terms", label: "Legal" },
   { href: "/admin/anchor", label: "Penjual Jangkar" },
+  { href: "/admin/feedback", label: "Saran & Masukan" },
 ];
 
 export default function AdminNav() {
