@@ -1,9 +1,10 @@
 // PATH: app/dashboard/profile/page.tsx
-// AKSI: GANTI SELURUH ISI FILE (tambah section Tampilan berisi ThemeToggle)
+// AKSI: GANTI SELURUH ISI FILE (tambah section Saran & Masukan)
 
 import { createClient } from "@/lib/supabase/server";
 import EditProfileForm from "./EditProfileForm";
 import ThemeToggle from "@/components/ThemeToggle";
+import FeedbackForm from "./FeedbackForm";
 
 type Profile = {
   username: string;
@@ -14,9 +15,14 @@ type Profile = {
 export default async function EditProfilePage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; success?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    success?: string;
+    feedback_error?: string;
+    feedback_success?: string;
+  }>;
 }) {
-  const { error, success } = await searchParams;
+  const { error, success, feedback_error, feedback_success } = await searchParams;
   const supabase = await createClient();
 
   const {
@@ -46,6 +52,11 @@ export default async function EditProfilePage({
           <ThemeToggle />
         </div>
       </div>
+
+      <FeedbackForm
+        errorMessage={feedback_error}
+        successMessage={feedback_success}
+      />
     </div>
   );
 }
