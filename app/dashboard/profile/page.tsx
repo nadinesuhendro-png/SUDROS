@@ -1,6 +1,7 @@
 // PATH: app/dashboard/profile/page.tsx
-// AKSI: GANTI SELURUH ISI FILE (tambah section Saran & Masukan)
+// AKSI: GANTI SELURUH ISI FILE (tambah link ke Pesan)
 
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import EditProfileForm from "./EditProfileForm";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -42,6 +43,22 @@ export default async function EditProfilePage({
         errorMessage={error}
         successMessage={success}
       />
+
+      <Link
+        href="/dashboard/messages"
+        className="flex items-center justify-between rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-4"
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-lg">💬</span>
+          <div>
+            <p className="text-sm font-medium text-[var(--card-foreground)]">Pesan</p>
+            <p className="text-xs text-[var(--muted-foreground)]">
+              Lihat percakapan dengan pembeli & penjual
+            </p>
+          </div>
+        </div>
+        <span className="text-[var(--muted-foreground)]">→</span>
+      </Link>
 
       <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-4">
         <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted-foreground)]">
