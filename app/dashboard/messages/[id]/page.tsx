@@ -67,7 +67,8 @@ export default async function ConversationPage({
     .from("notifications")
     .update({ is_read: true })
     .eq("recipient_user_id", user.id)
-    .eq("link", `/dashboard/messages/${id}`)
+    .eq("reference_type", "conversation")
+    .eq("reference_id", id)
     .eq("is_read", false);
 
   const otherId =
