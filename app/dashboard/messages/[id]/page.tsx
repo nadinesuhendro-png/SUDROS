@@ -1,5 +1,5 @@
 // PATH: app/dashboard/messages/[id]/page.tsx
-// AKSI: GANTI SELURUH ISI FILE (perbaikan sebenarnya: formatTime jalan di server yang timezone-nya UTC, bukan WIB — paksa timeZone Asia/Jakarta)
+// AKSI: GANTI SELURUH ISI FILE (tambah: notifikasi pesan otomatis ditandai dibaca saat percakapan dibuka)
 
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -60,6 +60,15 @@ export default async function ConversationPage({
   ) {
     notFound();
   }
+
+  // Tandai otomatis notifikasi pesan untuk percakapan ini sebagai sudah dibaca,
+  // karena user baru saja membukanya.
+  await supabase
+    .from("notifications")
+    .update({ is_read: true })
+    .eq("recipient_user_id", user.id)
+    .eq("link", `/dashboard/messages/${id}`)
+    .eq("is_read", false);
 
   const otherId =
     conversation.buyer_id === user.id
