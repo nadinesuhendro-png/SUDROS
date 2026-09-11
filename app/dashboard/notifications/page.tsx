@@ -1,6 +1,7 @@
 // PATH: app/dashboard/notifications/page.tsx
-// AKSI: GANTI SELURUH ISI FILE (tambah tombol mark-as-read per item)
+// AKSI: GANTI SELURUH ISI FILE (tap notifikasi conversation langsung buka pesan)
 
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { markAllAsRead, markAsRead } from "./actions";
 
@@ -10,6 +11,8 @@ type NotificationRow = {
   message: string;
   is_read: boolean;
   created_at: string;
+  reference_type: string | null;
+  reference_id: string | null;
 };
 
 function formatDate(dateStr: string) {
@@ -17,6 +20,13 @@ function formatDate(dateStr: string) {
     dateStyle: "medium",
     timeStyle: "short",
   });
+}
+
+function getTargetHref(n: NotificationRow): string | null {
+  if (n.reference_type === "conversation" && n.reference_id) {
+    return `/dashboard/messages/${n.reference_id}`;
+  }
+  return null;
 }
 
 export default async function NotificationsPage() {
@@ -28,7 +38,7 @@ export default async function NotificationsPage() {
 
   const { data: notifications } = await supabase
     .from("notifications")
-    .select("id, title, message, is_read, created_at")
+    .select("id, title, message, is_read, created_at, reference_type, reference_id")
     .eq("recipient_user_id", user!.id)
     .order("created_at", { ascending: false })
     .returns<NotificationRow[]>();
@@ -60,37 +70,60 @@ export default async function NotificationsPage() {
       ) : null}
 
       <div className="flex flex-col gap-2">
-        {(notifications || []).map((n) => (
-          <div
-            key={n.id}
-            className="flex flex-col gap-1 rounded-[var(--radius)] border p-3 text-sm"
-            style={
-              n.is_read
-                ? { borderColor: "var(--border)", backgroundColor: "var(--card)" }
-                : { borderColor: "var(--primary)", backgroundColor: "var(--muted)" }
-            }
-          >
-            <div className="flex items-start justify-between gap-2">
-              <p className="font-medium text-[var(--card-foreground)]">{n.title}</p>
-              {!n.is_read ? (
-                <form action={markAsRead}>
-                  <input type="hidden" name="id" value={n.id} />
-                  <button
-                    type="submit"
-                    className="flex-shrink-0 text-xs font-medium"
-                    style={{ color: "var(--primary)" }}
-                  >
-                    Tandai dibaca
-                  </button>
-                </form>
-              ) : null}
+        {(notifications || []).map((n) => {
+          const href = getTargetHref(n);
+
+          const cardStyle = n.is_read
+            ? { borderColor: "var(--border)", backgroundColor: "var(--card)" }
+            : { borderColor: "var(--primary)", backgroundColor: "var(--muted)" };
+
+          const content = (
+            <>
+              <div className="flex items-start justify-between gap-2">
+                <p className="font-medium text-[var(--card-foreground)]">{n.title}</p>
+                {!n.is_read && !href ? (
+                  <form action={markAsRead}>
+                    <input type="hidden" name="id" value={n.id} />
+                    <button
+                      type="submit"
+                      className="flex-shrink-0 text-xs font-medium"
+                      style={{ color: "var(--primary)" }}
+                    >
+                      Tandai dibaca
+                    </button>
+                  </form>
+                ) : null}
+              </div>
+              <p className="text-[var(--muted-foreground)]">{n.message}</p>
+              <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                {formatDate(n.created_at)}
+              </p>
+            </>
+          );
+
+          if (href) {
+            return (
+              <Link
+                key={n.id}
+                href={href}
+                className="flex flex-col gap-1 rounded-[var(--radius)] border p-3 text-sm"
+                style={cardStyle}
+              >
+                {content}
+              </Link>
+            );
+          }
+
+          return (
+            <div
+              key={n.id}
+              className="flex flex-col gap-1 rounded-[var(--radius)] border p-3 text-sm"
+              style={cardStyle}
+            >
+              {content}
             </div>
-            <p className="text-[var(--muted-foreground)]">{n.message}</p>
-            <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-              {formatDate(n.created_at)}
-            </p>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </main>
   );
