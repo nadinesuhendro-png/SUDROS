@@ -1,5 +1,5 @@
 // PATH: app/dashboard/messages/[id]/page.tsx
-// AKSI: GANTI SELURUH ISI FILE (perbaikan: formatTime sekarang tahan terhadap timestamp tanpa zona waktu)
+// AKSI: GANTI SELURUH ISI FILE (perbaikan sebenarnya: formatTime jalan di server yang timezone-nya UTC, bukan WIB — paksa timeZone Asia/Jakarta)
 
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -22,14 +22,13 @@ type MessageRow = {
 type ProfileRow = { id: string; username: string };
 
 function formatTime(dateStr: string) {
-  // Jaga-jaga kalau timestamp dari DB tidak menyertakan info zona waktu (UTC),
-  // supaya tidak salah dibaca sebagai waktu lokal oleh browser.
   const hasTimezoneInfo = /Z$|[+-]\d{2}:?\d{2}$/.test(dateStr);
   const normalized = hasTimezoneInfo ? dateStr : `${dateStr}Z`;
 
   return new Date(normalized).toLocaleString("id-ID", {
     dateStyle: "short",
     timeStyle: "short",
+    timeZone: "Asia/Jakarta",
   });
 }
 
