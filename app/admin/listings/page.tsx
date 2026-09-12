@@ -35,10 +35,20 @@ function formatPrice(price: number) {
 export default async function AdminListingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ highlight?: string }>;
+  searchParams: Promise<{
+    highlight?: string;
+    debug?: string;
+    detail?: string;
+    is_admin_rpc?: string;
+    is_admin_rpc_error?: string;
+    my_id?: string;
+    owner_id?: string;
+    role?: string;
+    listing_id?: string;
+  }>;
 }) {
-  const { highlight } = await searchParams;
-  const highlightId = highlight || null;
+  const params = await searchParams;
+  const highlightId = params.highlight || null;
 
   const supabase = await createClient();
 
@@ -53,6 +63,24 @@ export default async function AdminListingsPage({
   return (
     <div className="flex flex-col gap-2">
       <ScrollToHighlight id={highlightId} />
+
+      {params.debug ? (
+        <div
+          className="rounded-[var(--radius)] border p-3 text-xs"
+          style={{ borderColor: "#dc2626", backgroundColor: "#fef2f2", color: "#7f1d1d" }}
+        >
+          <p className="font-bold">DEBUG: {params.debug}</p>
+          {params.detail ? <p>detail: {decodeURIComponent(params.detail)}</p> : null}
+          {params.is_admin_rpc ? <p>is_admin_rpc: {params.is_admin_rpc}</p> : null}
+          {params.is_admin_rpc_error ? (
+            <p>is_admin_rpc_error: {decodeURIComponent(params.is_admin_rpc_error)}</p>
+          ) : null}
+          {params.my_id ? <p>my_id (admin): {params.my_id}</p> : null}
+          {params.owner_id ? <p>owner_id (listing): {params.owner_id}</p> : null}
+          {params.role ? <p>role: {params.role}</p> : null}
+          {params.listing_id ? <p>listing_id: {params.listing_id}</p> : null}
+        </div>
+      ) : null}
 
       <h2 className="text-sm font-semibold text-[var(--muted-foreground)]">
         Listings ({(listings || []).length})
