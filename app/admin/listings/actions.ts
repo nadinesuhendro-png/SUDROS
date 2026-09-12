@@ -1,5 +1,6 @@
 // PATH: app/admin/listings/actions.ts
-// AKSI: GANTI TOTAL (fix: kolom `link` tidak ada di tabel notifications — pakai type/reference_type/reference_id)
+// AKSI: GANTI TOTAL (sementara — versi diagnostic: cek jumlah baris ter-update secara eksplisit,
+// dan tampilkan alasan gagal lewat query param supaya kelihatan di UI tanpa perlu cek DB manual)
 
 "use server";
 
@@ -38,14 +39,18 @@ export async function moderateListing(formData: FormData) {
     redirect("/login");
   }
 
-  const { data: myProfile } = await supabase
+  const { data: myProfile, error: profileError } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .single();
 
-  if (!myProfile || myProfile.role !== "admin") {
-    redirect("/dashboard");
+  if (!myProfile) {
+    redirect(`/admin/listings?debug=no_profile&detail=${encodeURIComponent(profileError?.message || "")}`);
+  }
+
+  if (myProfile.role !== "admin") {
+    redirect(`/admin/listings?debug=not_admin&role=${myProfile.role}`);
   }
 
   const id = formData.get("id") as string;
@@ -53,7 +58,7 @@ export async function moderateListing(formData: FormData) {
 
   const allowedStatuses = ["active", "pending", "rejected", "suspended"];
   if (!id || !allowedStatuses.includes(status)) {
-    redirect("/admin/listings");
+    redirect("/admin/listings?debug=bad_input");
   }
 
   const { data: listing } = await supabase
@@ -63,24 +68,33 @@ export async function moderateListing(formData: FormData) {
     .single();
 
   if (!listing) {
-    redirect("/admin/listings");
+    redirect("/admin/listings?debug=listing_not_found");
   }
 
   const oldStatus = listing.status;
 
-  const { error: updateError } = await supabase
+  // .select() setelah update supaya kita tahu PASTI berapa baris yang benar-benar
+  // berubah — bukan cuma cek `error` (UPDATE yang ke-filter habis oleh RLS
+  // biasanya TIDAK melempar error, hasilnya cuma 0 baris tanpa pemberitahuan)
+  const { data: updatedRows, error: updateError } = await supabase
     .from("listings")
     .update({ status })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id, status");
 
   if (updateError) {
-    redirect("/admin/listings");
+    redirect(`/admin/listings?debug=update_error&detail=${encodeURIComponent(updateError.message)}`);
+  }
+
+  if (!updatedRows || updatedRows.length === 0) {
+    // Update "sukses" tapi 0 baris kena — ini tanda RLS diam-diam memblokir
+    redirect(`/admin/listings?debug=zero_rows_updated&listing_id=${id}`);
   }
 
   if (oldStatus !== status) {
     const template = STATUS_MESSAGES[status];
     if (template) {
-      await supabase.from("notifications").insert({
+      const { error: notifError } = await supabase.from("notifications").insert({
         recipient_user_id: listing.owner_id,
         type: "listing_status_change",
         title: template.title,
@@ -89,8 +103,12 @@ export async function moderateListing(formData: FormData) {
         reference_id: listing.id,
         is_read: false,
       });
+
+      if (notifError) {
+        redirect(`/admin/listings?debug=notif_error&detail=${encodeURIComponent(notifError.message)}`);
+      }
     }
   }
 
-  redirect("/admin/listings");
+  redirect("/admin/listings?debug=success");
 }
