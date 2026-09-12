@@ -1,5 +1,5 @@
 // PATH: app/dashboard/notifications/page.tsx
-// AKSI: GANTI SELURUH ISI FILE (tap notifikasi conversation langsung buka pesan)
+// AKSI: GANTI SELURUH ISI FILE (tambah: tap notifikasi listing langsung buka listing yang dimaksud)
 
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
@@ -7,6 +7,7 @@ import { markAllAsRead, markAsRead } from "./actions";
 
 type NotificationRow = {
   id: string;
+  type: string;
   title: string;
   message: string;
   is_read: boolean;
@@ -26,6 +27,18 @@ function getTargetHref(n: NotificationRow): string | null {
   if (n.reference_type === "conversation" && n.reference_id) {
     return `/dashboard/messages/${n.reference_id}`;
   }
+
+  if (n.reference_type === "listing" && n.reference_id) {
+    // Notifikasi ke admin (listing perlu ditinjau) -> arahkan ke tab admin dengan highlight
+    if (n.type === "moderation_flag") {
+      return `/admin/listings?highlight=${n.reference_id}`;
+    }
+    // Notifikasi ke owner (status listing berubah) -> arahkan ke halaman detail publik listingnya
+    if (n.type === "listing_status_change") {
+      return `/listings/${n.reference_id}`;
+    }
+  }
+
   return null;
 }
 
@@ -38,7 +51,7 @@ export default async function NotificationsPage() {
 
   const { data: notifications } = await supabase
     .from("notifications")
-    .select("id, title, message, is_read, created_at, reference_type, reference_id")
+    .select("id, type, title, message, is_read, created_at, reference_type, reference_id")
     .eq("recipient_user_id", user!.id)
     .order("created_at", { ascending: false })
     .returns<NotificationRow[]>();
