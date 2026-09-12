@@ -1,5 +1,5 @@
 // PATH: lib/agents/moderation-agent.ts
-// AKSI: GANTI SELURUH ISI FILE (tambah alert admin saat gagal 3x berturut-turut)
+// AKSI: GANTI SELURUH ISI FILE (fix: kolom `link` tidak ada di tabel notifications — pakai type/reference_type/reference_id)
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { callGemini } from "@/lib/ai/gemini-provider";
@@ -56,7 +56,7 @@ async function checkAndAlertOnRepeatedFailures(
   const { data: existingAlert } = await supabase
     .from("notifications")
     .select("id")
-    .eq("title", "⚠️ Moderation Agent bermasalah")
+    .eq("type", "moderation_agent_down")
     .gte("created_at", cooldownStart)
     .limit(1)
     .maybeSingle();
@@ -73,9 +73,11 @@ async function checkAndAlertOnRepeatedFailures(
   for (const admin of admins || []) {
     await supabase.from("notifications").insert({
       recipient_user_id: admin.id,
+      type: "moderation_agent_down",
       title: "⚠️ Moderation Agent bermasalah",
       message: `${FAILURE_ALERT_THRESHOLD} percobaan moderasi listing terakhir gagal berturut-turut. Listing baru berpotensi tertahan di status pending tanpa ditinjau otomatis. Cek halaman Agents dan tinjau listing pending secara manual sementara.`,
-      link: "/admin/agents",
+      reference_type: "agent",
+      reference_id: null,
     });
   }
 }
@@ -163,9 +165,11 @@ async function analyzeAndSaveListing(
       for (const admin of admins || []) {
         await supabase.from("notifications").insert({
           recipient_user_id: admin.id,
+          type: "moderation_flag",
           title: "Listing perlu ditinjau",
           message: `"${listing.title}" ditandai ${result.riskLevel} oleh Moderation Agent.`,
-          link: `/admin/listings`,
+          reference_type: "listing",
+          reference_id: listing.id,
         });
       }
     }
@@ -237,4 +241,4 @@ export async function runModerationAgent() {
   }
 
   return { ok: errors.length === 0, processed, errors };
-            }
+}
