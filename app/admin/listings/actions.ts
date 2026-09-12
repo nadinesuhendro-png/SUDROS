@@ -1,5 +1,5 @@
 // PATH: app/admin/listings/actions.ts
-// AKSI: GANTI TOTAL
+// AKSI: GANTI TOTAL (fix: kolom `link` tidak ada di tabel notifications — pakai type/reference_type/reference_id)
 
 "use server";
 
@@ -82,9 +82,11 @@ export async function moderateListing(formData: FormData) {
     if (template) {
       await supabase.from("notifications").insert({
         recipient_user_id: listing.owner_id,
+        type: "listing_status_change",
         title: template.title,
         message: template.message(listing.title),
-        link: `/dashboard/listings`,
+        reference_type: "listing",
+        reference_id: listing.id,
         is_read: false,
       });
     }
