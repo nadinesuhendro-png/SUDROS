@@ -53,6 +53,11 @@ export async function moderateListing(formData: FormData) {
     redirect(`/admin/listings?debug=not_admin&role=${myProfile.role}`);
   }
 
+  // Panggil is_admin() PERSIS lewat sesi login yang sama dengan yang dipakai UPDATE,
+  // supaya auth.uid() di dalamnya nyata (beda dengan tes lewat SQL editor yang jalan
+  // sebagai role lain, bukan sesi user yang sedang login)
+  const { data: isAdminRpc, error: isAdminRpcError } = await supabase.rpc("is_admin");
+
   const id = formData.get("id") as string;
   const status = formData.get("status") as string;
 
@@ -83,7 +88,9 @@ export async function moderateListing(formData: FormData) {
     .select("id, status");
 
   if (updateError) {
-    redirect(`/admin/listings?debug=update_error&detail=${encodeURIComponent(updateError.message)}`);
+    redirect(
+      `/admin/listings?debug=update_error&detail=${encodeURIComponent(updateError.message)}&is_admin_rpc=${isAdminRpc}&is_admin_rpc_error=${encodeURIComponent(isAdminRpcError?.message || "none")}&my_id=${user.id}&owner_id=${listing.owner_id}`
+    );
   }
 
   if (!updatedRows || updatedRows.length === 0) {
