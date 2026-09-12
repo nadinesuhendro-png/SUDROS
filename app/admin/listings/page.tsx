@@ -1,10 +1,11 @@
 // PATH: app/admin/listings/page.tsx
-// AKSI: UPDATE FILE (auth check & AdminNav dipindah ke layout.tsx, jadi tidak dobel)
+// AKSI: GANTI TOTAL (tambah: baca ?highlight=id dari notifikasi, sorot + auto-scroll ke listing itu)
 
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { moderateListing } from "./actions";
 import ModerationButton from "./ModerationButton";
+import ScrollToHighlight from "./ScrollToHighlight";
 
 type AdminListing = {
   id: string;
@@ -31,7 +32,14 @@ function formatPrice(price: number) {
   }).format(price);
 }
 
-export default async function AdminListingsPage() {
+export default async function AdminListingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ highlight?: string }>;
+}) {
+  const { highlight } = await searchParams;
+  const highlightId = highlight || null;
+
   const supabase = await createClient();
 
   const { data: listings } = await supabase
@@ -44,6 +52,8 @@ export default async function AdminListingsPage() {
 
   return (
     <div className="flex flex-col gap-2">
+      <ScrollToHighlight id={highlightId} />
+
       <h2 className="text-sm font-semibold text-[var(--muted-foreground)]">
         Listings ({(listings || []).length})
       </h2>
@@ -53,11 +63,22 @@ export default async function AdminListingsPage() {
           (a, b) => a.sort_order - b.sort_order
         );
         const coverImage = sortedImages[0]?.image_url;
+        const isHighlighted = highlightId === listing.id;
 
         return (
           <div
             key={listing.id}
-            className="flex flex-col gap-2 rounded-[var(--radius)] border border-gray-200 p-3 text-sm"
+            id={`listing-${listing.id}`}
+            className="flex flex-col gap-2 rounded-[var(--radius)] border p-3 text-sm transition-colors"
+            style={
+              isHighlighted
+                ? {
+                    borderColor: "var(--primary)",
+                    backgroundColor: "var(--muted)",
+                    boxShadow: "0 0 0 2px var(--primary)",
+                  }
+                : { borderColor: "var(--border, #e5e7eb)" }
+            }
           >
             <div className="flex gap-3">
               <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-[var(--radius)] bg-gray-100">
