@@ -1,5 +1,5 @@
 // PATH: app/admin/anchor/actions.ts
-// AKSI: GANTI TOTAL
+// AKSI: GANTI TOTAL (fix: kolom `link` tidak ada di tabel notifications — pakai type/reference_type/reference_id)
 
 "use server";
 
@@ -92,10 +92,12 @@ export async function upgradeUserToAnchor(formData: FormData) {
 
   await supabase.from("notifications").insert({
     recipient_user_id: profile!.id,
+    type: "anchor_upgraded",
     title: "🎉 Kamu resmi jadi Penjual Jangkar",
     message:
       "Admin baru saja mengaktifkan status Penjual Jangkar di akun kamu. Sekarang listing kamu tanpa batas dan gratis biaya paket.",
-    link: "/dashboard/package",
+    reference_type: "package",
+    reference_id: null,
     is_read: false,
   });
 
@@ -112,9 +114,11 @@ export async function revokeAnchor(formData: FormData) {
 
   await supabase.from("notifications").insert({
     recipient_user_id: id,
+    type: "anchor_revoked",
     title: "Status Penjual Jangkar dicabut",
     message: "Status Penjual Jangkar di akun kamu dicabut oleh admin.",
-    link: "/dashboard/package",
+    reference_type: "package",
+    reference_id: null,
     is_read: false,
   });
 
