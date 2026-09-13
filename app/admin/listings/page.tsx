@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { moderateListing } from "./actions";
 import ModerationButton from "./ModerationButton";
 import ScrollToHighlight from "./ScrollToHighlight";
+import ModerationActionButton from "./ModerationActionButton";
 
 type AdminListing = {
   id: string;
@@ -134,34 +135,25 @@ export default async function AdminListingsPage({
               <form action={moderateListing} className="flex flex-col gap-1">
                 <input type="hidden" name="id" value={listing.id} />
                 {listing.status !== "active" ? (
-                  <button
-                    type="submit"
-                    name="status"
-                    value="active"
-                    className="rounded-[var(--radius)] border border-green-300 px-2 py-1 text-xs text-green-700"
-                  >
-                    Approve
-                  </button>
+                  <ModerationActionButton
+                    status="active"
+                    label="Approve"
+                    colorClass="border-green-300 text-green-700"
+                  />
                 ) : null}
                 {listing.status !== "suspended" ? (
-                  <button
-                    type="submit"
-                    name="status"
-                    value="suspended"
-                    className="rounded-[var(--radius)] border border-yellow-300 px-2 py-1 text-xs text-yellow-700"
-                  >
-                    Suspend
-                  </button>
+                  <ModerationActionButton
+                    status="suspended"
+                    label="Suspend"
+                    colorClass="border-yellow-300 text-yellow-700"
+                  />
                 ) : null}
                 {listing.status !== "rejected" ? (
-                  <button
-                    type="submit"
-                    name="status"
-                    value="rejected"
-                    className="rounded-[var(--radius)] border border-red-300 px-2 py-1 text-xs text-red-700"
-                  >
-                    Reject
-                  </button>
+                  <ModerationActionButton
+                    status="rejected"
+                    label="Reject"
+                    colorClass="border-red-300 text-red-700"
+                  />
                 ) : null}
               </form>
             </div>
