@@ -1,9 +1,12 @@
 // PATH: app/admin/anchor/actions.ts
-// AKSI: GANTI TOTAL (fix: kolom `link` tidak ada di tabel notifications — pakai type/reference_type/reference_id)
+// AKSI: GANTI TOTAL (fix: pola sama seperti admin/listings/actions.ts — pakai admin client/service role
+// untuk semua mutasi setelah identitas admin divalidasi manual, hindari kemungkinan is_admin() RLS
+// gagal saat dievaluasi nested di dalam UPDATE/INSERT)
 
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 import { randomUUID } from "crypto";
 
@@ -23,17 +26,18 @@ async function requireAdmin() {
 
   if (!myProfile || myProfile.role !== "admin") redirect("/dashboard");
 
-  return { supabase, adminId: user.id };
+  return { adminId: user.id };
 }
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function createAnchorInvite() {
-  const { supabase, adminId } = await requireAdmin();
+  const { adminId } = await requireAdmin();
+  const adminSupabase = createAdminClient();
 
   const token = randomUUID().replace(/-/g, "");
 
-  const { error } = await supabase.from("anchor_invites").insert({
+  const { error } = await adminSupabase.from("anchor_invites").insert({
     token,
     created_by: adminId,
   });
@@ -46,7 +50,8 @@ export async function createAnchorInvite() {
 }
 
 export async function upgradeUserToAnchor(formData: FormData) {
-  const { supabase } = await requireAdmin();
+  await requireAdmin();
+  const adminSupabase = createAdminClient();
 
   const query = (formData.get("query") as string)?.trim();
   if (!query) {
@@ -56,14 +61,14 @@ export async function upgradeUserToAnchor(formData: FormData) {
   let profile: { id: string } | null = null;
 
   if (UUID_REGEX.test(query)) {
-    const { data } = await supabase
+    const { data } = await adminSupabase
       .from("profiles")
       .select("id")
       .eq("id", query)
       .maybeSingle();
     profile = data;
   } else {
-    const { data } = await supabase
+    const { data } = await adminSupabase
       .from("profiles")
       .select("id")
       .ilike("whatsapp", `%${query}%`)
@@ -76,7 +81,7 @@ export async function upgradeUserToAnchor(formData: FormData) {
     redirect("/admin/anchor?error=user_not_found");
   }
 
-  const { error: updateError } = await supabase
+  const { error: updateError } = await adminSupabase
     .from("profiles")
     .update({
       is_anchor_seller: true,
@@ -90,7 +95,7 @@ export async function upgradeUserToAnchor(formData: FormData) {
     redirect("/admin/anchor?error=upgrade_failed");
   }
 
-  await supabase.from("notifications").insert({
+  await adminSupabase.from("notifications").insert({
     recipient_user_id: profile!.id,
     type: "anchor_upgraded",
     title: "🎉 Kamu resmi jadi Penjual Jangkar",
@@ -105,14 +110,15 @@ export async function upgradeUserToAnchor(formData: FormData) {
 }
 
 export async function revokeAnchor(formData: FormData) {
-  const { supabase } = await requireAdmin();
+  await requireAdmin();
+  const adminSupabase = createAdminClient();
 
   const id = formData.get("id") as string;
   if (!id) redirect("/admin/anchor");
 
-  await supabase.from("profiles").update({ is_anchor_seller: false }).eq("id", id);
+  await adminSupabase.from("profiles").update({ is_anchor_seller: false }).eq("id", id);
 
-  await supabase.from("notifications").insert({
+  await adminSupabase.from("notifications").insert({
     recipient_user_id: id,
     type: "anchor_revoked",
     title: "Status Penjual Jangkar dicabut",
