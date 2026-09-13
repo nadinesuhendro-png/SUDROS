@@ -1,9 +1,12 @@
 // PATH: app/admin/packages/actions.ts
-// AKSI: UPDATE FILE (tambah createPackage, updatePackage, deletePackage — togglePackageActive tetap dipertahankan)
+// AKSI: GANTI TOTAL (fix: pola sama seperti admin/listings/actions.ts — pakai admin client/service role
+// untuk semua mutasi setelah identitas admin divalidasi manual, hindari kemungkinan is_admin() RLS
+// gagal saat dievaluasi nested di dalam UPDATE/INSERT/DELETE)
 
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 
 async function requireAdmin() {
@@ -26,26 +29,6 @@ async function requireAdmin() {
   if (!myProfile || myProfile.role !== "admin") {
     redirect("/dashboard");
   }
-
-  return supabase;
-}
-
-export async function togglePackageActive(formData: FormData) {
-  const supabase = await requireAdmin();
-
-  const id = formData.get("id") as string;
-  const isActive = formData.get("is_active") === "true";
-
-  if (!id) {
-    redirect("/admin/packages");
-  }
-
-  await supabase
-    .from("advertising_packages")
-    .update({ is_active: isActive, updated_at: new Date().toISOString() })
-    .eq("id", id);
-
-  redirect("/admin/packages");
 }
 
 function slugify(name: string) {
@@ -56,8 +39,28 @@ function slugify(name: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+export async function togglePackageActive(formData: FormData) {
+  await requireAdmin();
+  const adminSupabase = createAdminClient();
+
+  const id = formData.get("id") as string;
+  const isActive = formData.get("is_active") === "true";
+
+  if (!id) {
+    redirect("/admin/packages");
+  }
+
+  await adminSupabase
+    .from("advertising_packages")
+    .update({ is_active: isActive, updated_at: new Date().toISOString() })
+    .eq("id", id);
+
+  redirect("/admin/packages");
+}
+
 export async function createPackage(formData: FormData) {
-  const supabase = await requireAdmin();
+  await requireAdmin();
+  const adminSupabase = createAdminClient();
 
   const name = (formData.get("name") as string || "").trim();
   const description = (formData.get("description") as string || "").trim();
@@ -69,7 +72,7 @@ export async function createPackage(formData: FormData) {
     redirect("/admin/packages/new?error=1");
   }
 
-  await supabase.from("advertising_packages").insert({
+  await adminSupabase.from("advertising_packages").insert({
     name,
     slug: slugify(name),
     description,
@@ -83,7 +86,8 @@ export async function createPackage(formData: FormData) {
 }
 
 export async function updatePackage(formData: FormData) {
-  const supabase = await requireAdmin();
+  await requireAdmin();
+  const adminSupabase = createAdminClient();
 
   const id = formData.get("id") as string;
   const name = (formData.get("name") as string || "").trim();
@@ -96,7 +100,7 @@ export async function updatePackage(formData: FormData) {
     redirect(`/admin/packages/${id}/edit?error=1`);
   }
 
-  await supabase
+  await adminSupabase
     .from("advertising_packages")
     .update({
       name,
@@ -113,7 +117,8 @@ export async function updatePackage(formData: FormData) {
 }
 
 export async function deletePackage(formData: FormData) {
-  const supabase = await requireAdmin();
+  await requireAdmin();
+  const adminSupabase = createAdminClient();
 
   const id = formData.get("id") as string;
 
@@ -121,7 +126,7 @@ export async function deletePackage(formData: FormData) {
     redirect("/admin/packages");
   }
 
-  await supabase.from("advertising_packages").delete().eq("id", id);
+  await adminSupabase.from("advertising_packages").delete().eq("id", id);
 
   redirect("/admin/packages");
 }
