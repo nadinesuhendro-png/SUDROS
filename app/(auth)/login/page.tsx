@@ -1,9 +1,7 @@
-// PATH: app/(auth)/login/page.tsx
-// AKSI: GANTI SELURUH ISI FILE (tambah link Lupa Password)
-
 import Link from "next/link";
 import Image from "next/image";
 import { login } from "@/app/(auth)/actions";
+import PasswordInput from "@/components/PasswordInput";
 
 export default async function LoginPage({
   searchParams,
@@ -43,13 +41,12 @@ export default async function LoginPage({
             required
             className="rounded-md border border-[var(--border)] px-3 py-2 text-sm"
           />
-          <input
-            type="password"
+          <PasswordInput
             name="password"
             placeholder="Password"
             required
             minLength={6}
-            className="rounded-md border border-[var(--border)] px-3 py-2 text-sm"
+            className="w-full rounded-md border border-[var(--border)] px-3 py-2 text-sm"
           />
           <div className="text-right">
             <Link
