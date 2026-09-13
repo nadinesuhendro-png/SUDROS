@@ -38,43 +38,49 @@ export async function getAdminNavCounts(): Promise<AdminNavCounts> {
 
   const [listings, users, reports, payments, agents, feedback] =
     await Promise.all([
-      safeCount(() =>
-        supabase
+      safeCount(async () => {
+        const result = await supabase
           .from("listings")
           .select("id", { count: "exact", head: true })
-          .eq("status", "pending")
-      ),
-      safeCount(() =>
-        supabase
+          .eq("status", "pending");
+        return result;
+      }),
+      safeCount(async () => {
+        const result = await supabase
           .from("profiles")
           .select("id", { count: "exact", head: true })
-          .gte("created_at", since24h)
-      ),
-      safeCount(() =>
-        supabase
+          .gte("created_at", since24h);
+        return result;
+      }),
+      safeCount(async () => {
+        const result = await supabase
           .from("reports")
           .select("id", { count: "exact", head: true })
-          .eq("status", "pending")
-      ),
-      safeCount(() =>
-        supabase
+          .eq("status", "pending");
+        return result;
+      }),
+      safeCount(async () => {
+        const result = await supabase
           .from("advertising_orders")
           .select("id", { count: "exact", head: true })
-          .eq("status", "pending")
-      ),
-      safeCount(() =>
-        supabase
+          .eq("status", "pending");
+        return result;
+      }),
+      safeCount(async () => {
+        const result = await supabase
           .from("agent_tasks")
           .select("id", { count: "exact", head: true })
           .eq("status", "failed")
-          .gte("created_at", since24h)
-      ),
-      safeCount(() =>
-        supabase
+          .gte("created_at", since24h);
+        return result;
+      }),
+      safeCount(async () => {
+        const result = await supabase
           .from("feedback")
           .select("id", { count: "exact", head: true })
-          .eq("is_read", false)
-      ),
+          .eq("is_read", false);
+        return result;
+      }),
     ]);
 
   return { listings, users, reports, payments, agents, feedback };
