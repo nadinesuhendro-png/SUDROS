@@ -1,6 +1,3 @@
-// PATH: app/dashboard/listings/[id]/edit/page.tsx
-// AKSI: BUAT FILE BARU
-
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import EditListingForm from "./EditListingForm";
@@ -24,6 +21,8 @@ type ListingForEdit = {
   category_id: string;
   location_city: string;
   location_area: string | null;
+  latitude: number | null;
+  longitude: number | null;
   owner_id: string;
   listing_images: ListingImage[];
 };
@@ -50,7 +49,7 @@ export default async function EditListingPage({
   const { data: listing } = await supabase
     .from("listings")
     .select(
-      "id, title, description, price, category_id, location_city, location_area, owner_id, listing_images(id, image_url, sort_order)"
+      "id, title, description, price, category_id, location_city, location_area, latitude, longitude, owner_id, listing_images(id, image_url, sort_order)"
     )
     .eq("id", id)
     .eq("owner_id", user.id)
