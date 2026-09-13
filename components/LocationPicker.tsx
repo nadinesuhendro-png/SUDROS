@@ -1,22 +1,7 @@
-// PATH: components/LocationPicker.tsx
-// AKSI: BUAT FILE BARU
-//
-// PENTING - cara pakai di form (karena Leaflet butuh window/browser):
-//   import dynamic from "next/dynamic";
-//   const LocationPicker = dynamic(() => import("@/components/LocationPicker"), { ssr: false });
-//
-// Tambahan yang perlu dilakukan MANUAL sebelum pakai komponen ini:
-//   1. Tambah dependency di package.json:
-//        "leaflet": "^1.9.4"
-//        "react-leaflet": "^5.0.0"
-//      lalu commit - Vercel akan install otomatis pas build.
-//   2. Import CSS Leaflet di app/globals.css (baris paling atas):
-//        @import "leaflet/dist/leaflet.css";
-
 "use client";
 
-import { useState } from "react";
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import { useEffect, useState } from "react";
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import type { LeafletMouseEvent } from "leaflet";
 
@@ -44,6 +29,31 @@ function ClickHandler({ onSelect }: { onSelect: (lat: number, lng: number) => vo
       onSelect(e.latlng.lat, e.latlng.lng);
     },
   });
+  return null;
+}
+
+// Leaflet sering salah hitung ukuran peta kalau container-nya belum stabil
+// (misal dimuat lewat dynamic import + skeleton, atau di dalam form yang discroll).
+// Paksa hitung ulang beberapa kali setelah mount, dan setiap window di-resize.
+function InvalidateSizeOnReady() {
+  const map = useMap();
+
+  useEffect(() => {
+    const timers = [50, 300, 800].map((delay) =>
+      setTimeout(() => map.invalidateSize(), delay)
+    );
+
+    function handleResize() {
+      map.invalidateSize();
+    }
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      timers.forEach(clearTimeout);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [map]);
+
   return null;
 }
 
@@ -103,6 +113,7 @@ export default function LocationPicker({ latitude, longitude, onChange }: Locati
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution="&copy; OpenStreetMap contributors"
           />
+          <InvalidateSizeOnReady />
           <ClickHandler onSelect={onChange} />
           {latitude !== null && longitude !== null ? (
             <Marker position={[latitude, longitude]} icon={markerIcon} />
