@@ -1,5 +1,5 @@
 // PATH: app/admin/terms/page.tsx
-// AKSI: BUAT FILE BARU
+// AKSI: GANTI TOTAL (tambah: tampilkan error dari ?error= kalau ada mutasi gagal)
 
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
@@ -17,7 +17,13 @@ function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("id-ID", { dateStyle: "medium" });
 }
 
-export default async function AdminTermsPage() {
+export default async function AdminTermsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
+
   const supabase = await createClient();
 
   const { data: versions } = await supabase
@@ -39,6 +45,15 @@ export default async function AdminTermsPage() {
 
   return (
     <div className="flex flex-col gap-3">
+      {error ? (
+        <div
+          className="rounded-[var(--radius)] border p-3 text-xs"
+          style={{ borderColor: "#dc2626", backgroundColor: "#fef2f2", color: "#7f1d1d" }}
+        >
+          <p className="font-bold">Gagal: {decodeURIComponent(error)}</p>
+        </div>
+      ) : null}
+
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-[var(--muted-foreground)]">
           Legal / Terms & Conditions ({(versions || []).length})
