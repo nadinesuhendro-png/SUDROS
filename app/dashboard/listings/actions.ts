@@ -1,6 +1,3 @@
-// AKSI: GANTI SELURUH ISI FILE (redirect sukses bawa query param buat tracking listing_created)
-// PATH: app/dashboard/listings/actions.ts
-
 "use server";
 
 import { after } from "next/server";
@@ -177,6 +174,8 @@ export async function updateListing(formData: FormData) {
   const categoryId = formData.get("category_id") as string;
   const locationCity = ((formData.get("location_city") as string) || "").trim();
   const locationArea = ((formData.get("location_area") as string) || "").trim();
+  const latitudeRaw = formData.get("latitude") as string;
+  const longitudeRaw = formData.get("longitude") as string;
   const newImageUrls = formData.getAll("new_image_urls") as string[];
 
   if (!id) {
@@ -208,6 +207,14 @@ export async function updateListing(formData: FormData) {
     );
   }
 
+  const latitude = latitudeRaw ? Number(latitudeRaw) : null;
+  const longitude = longitudeRaw ? Number(longitudeRaw) : null;
+  const hasValidLatLng =
+    latitude !== null &&
+    longitude !== null &&
+    Number.isFinite(latitude) &&
+    Number.isFinite(longitude);
+
   const { error: updateError } = await supabase
     .from("listings")
     .update({
@@ -217,6 +224,8 @@ export async function updateListing(formData: FormData) {
       category_id: categoryId,
       location_city: locationCity,
       location_area: locationArea || null,
+      latitude: hasValidLatLng ? latitude : null,
+      longitude: hasValidLatLng ? longitude : null,
     })
     .eq("id", id)
     .eq("owner_id", user.id);
