@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { register } from "@/app/(auth)/actions";
+import PasswordInput from "@/components/PasswordInput";
 
 export default async function RegisterPage({
   searchParams,
@@ -48,13 +49,12 @@ export default async function RegisterPage({
             required
             className="rounded-md border border-[var(--border)] px-3 py-2 text-sm"
           />
-          <input
-            type="password"
+          <PasswordInput
             name="password"
             placeholder="Password (min. 6 karakter)"
             required
             minLength={6}
-            className="rounded-md border border-[var(--border)] px-3 py-2 text-sm"
+            className="w-full rounded-md border border-[var(--border)] px-3 py-2 text-sm"
           />
           <button
             type="submit"
