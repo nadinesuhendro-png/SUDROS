@@ -77,19 +77,24 @@ export async function moderateListing(formData: FormData) {
 
   const oldStatus = listing.status;
 
-  const { error: updateError } = await adminSupabase
+  const { data: updatedRows, error: updateError } = await adminSupabase
     .from("listings")
     .update({ status })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id, status");
 
   if (updateError) {
-    redirect("/admin/listings");
+    redirect(`/admin/listings?debug=update_error&detail=${encodeURIComponent(updateError.message)}`);
+  }
+
+  if (!updatedRows || updatedRows.length === 0) {
+    redirect(`/admin/listings?debug=zero_rows_updated&listing_id=${id}`);
   }
 
   if (oldStatus !== status) {
     const template = STATUS_MESSAGES[status];
     if (template) {
-      await adminSupabase.from("notifications").insert({
+      const { error: notifError } = await adminSupabase.from("notifications").insert({
         recipient_user_id: listing.owner_id,
         type: "listing_status_change",
         title: template.title,
@@ -98,8 +103,16 @@ export async function moderateListing(formData: FormData) {
         reference_id: listing.id,
         is_read: false,
       });
+
+      if (notifError) {
+        redirect(`/admin/listings?debug=notif_error&detail=${encodeURIComponent(notifError.message)}`);
+      }
     }
+  } else {
+    // oldStatus === status berarti form mengirim status yang sama dengan status sekarang —
+    // kemungkinan tombol yang ditekan tidak sesuai yang dikira, atau value tombol salah
+    redirect(`/admin/listings?debug=no_status_change&old=${oldStatus}&new=${status}`);
   }
 
-  redirect("/admin/listings");
+  redirect("/admin/listings?debug=success");
 }
