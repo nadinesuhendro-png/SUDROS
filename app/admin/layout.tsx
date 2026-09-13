@@ -1,9 +1,7 @@
-// PATH: app/admin/layout.tsx
-// AKSI: BUAT FILE BARU (cek admin + render AdminNav terpusat untuk semua halaman /admin/*)
-
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AdminNav from "./AdminNav";
+import { getAdminNavCounts } from "@/lib/admin/nav-counts";
 
 export default async function AdminLayout({
   children,
@@ -30,6 +28,8 @@ export default async function AdminLayout({
     redirect("/dashboard");
   }
 
+  const counts = await getAdminNavCounts();
+
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-4 p-6">
       <h1
@@ -38,7 +38,7 @@ export default async function AdminLayout({
       >
         Admin Panel
       </h1>
-      <AdminNav />
+      <AdminNav counts={counts} />
       {children}
     </div>
   );
