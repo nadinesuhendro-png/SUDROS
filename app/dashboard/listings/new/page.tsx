@@ -1,11 +1,8 @@
-// PATH: app/dashboard/listings/new/page.tsx
-// AKSI: GANTI TOTAL (sementara — tampilkan detail error asli dari getActiveTermsVersionDebug)
-
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import NewListingForm from "./NewListingForm";
 import { getUserEntitlements } from "@/lib/entitlements/service";
-import { getActiveTermsVersionDebug, hasUserAgreedToActiveTerms } from "@/lib/terms/service";
+import { getActiveTermsVersion, hasUserAgreedToActiveTerms } from "@/lib/terms/service";
 import TermsConsentGate from "@/components/TermsConsentGate";
 
 type Category = {
@@ -29,7 +26,6 @@ export default async function NewListingPage({
     redirect("/login");
   }
 
-  // Cek kuota SEBELUM form dibuka
   const entitlements = await getUserEntitlements(user.id);
 
   if (!entitlements.canCreateListing) {
@@ -40,29 +36,18 @@ export default async function NewListingPage({
     );
   }
 
-  // Terms Consent Gate — FAIL CLOSED kalau versi aktif tidak ditemukan
-  const activeTermsResult = await getActiveTermsVersionDebug();
+  const activeTerms = await getActiveTermsVersion();
 
-  if (!activeTermsResult.ok) {
+  if (!activeTerms) {
     return (
       <main className="mx-auto flex max-w-lg flex-col gap-4 p-6">
         <div className="rounded-[var(--radius)] border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400">
-          <p className="mb-2">
-            Terjadi masalah saat memuat Syarat & Ketentuan. Pembuatan listing
-            untuk sementara tidak tersedia. Silakan coba lagi nanti.
-          </p>
-          <p className="text-xs font-mono opacity-75">
-            DEBUG: reason={activeTermsResult.reason}
-            {activeTermsResult.reason === "error"
-              ? ` — ${activeTermsResult.errorMessage}`
-              : ""}
-          </p>
+          Terjadi masalah saat memuat Syarat & Ketentuan. Pembuatan listing
+          untuk sementara tidak tersedia. Silakan coba lagi nanti.
         </div>
       </main>
     );
   }
-
-  const activeTerms = activeTermsResult.data;
 
   const hasAgreed = await hasUserAgreedToActiveTerms(user.id, activeTerms.id);
 
