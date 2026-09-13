@@ -1,11 +1,9 @@
-// PATH: app/reset-password/page.tsx
-// AKSI: BUAT FILE BARU
-
 "use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import PasswordInput from "@/components/PasswordInput";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -17,10 +15,6 @@ export default function ResetPasswordPage() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    // Supabase otomatis menukar token di URL jadi session recovery
-    // saat client dimuat (detectSessionInUrl default true). Kita cukup
-    // tunggu event PASSWORD_RECOVERY sebelum menampilkan form, supaya
-    // tidak muncul form kosong sebelum session siap.
     const supabase = createClient();
 
     const {
@@ -31,8 +25,6 @@ export default function ResetPasswordPage() {
       }
     });
 
-    // Fallback: kalau event sudah lewat sebelum listener terpasang,
-    // cek session yang ada sekarang
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
         setReady(true);
@@ -111,8 +103,7 @@ export default function ResetPasswordPage() {
           <label className="mb-1 block text-xs font-medium text-[var(--foreground)]">
             Password Baru
           </label>
-          <input
-            type="password"
+          <PasswordInput
             required
             minLength={8}
             value={password}
@@ -124,8 +115,7 @@ export default function ResetPasswordPage() {
           <label className="mb-1 block text-xs font-medium text-[var(--foreground)]">
             Konfirmasi Password Baru
           </label>
-          <input
-            type="password"
+          <PasswordInput
             required
             minLength={8}
             value={confirmPassword}
@@ -144,4 +134,4 @@ export default function ResetPasswordPage() {
       </form>
     </main>
   );
-      }
+}
