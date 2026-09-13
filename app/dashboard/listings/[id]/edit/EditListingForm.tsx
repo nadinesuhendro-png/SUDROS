@@ -1,15 +1,20 @@
-// PATH: app/dashboard/listings/[id]/edit/EditListingForm.tsx
-// AKSI: GANTI SELURUH ISI FILE (retrofit dark mode)
-
 "use client";
 
 import Image from "next/image";
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
 import {
   updateListing,
   deleteListingImage,
 } from "@/app/dashboard/listings/actions";
+
+const LocationPicker = dynamic(() => import("@/components/LocationPicker"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-64 w-full animate-pulse rounded-[var(--radius)] border border-[var(--border)] bg-[var(--muted)]" />
+  ),
+});
 
 type Category = {
   id: string;
@@ -30,6 +35,8 @@ type ListingForEdit = {
   category_id: string;
   location_city: string;
   location_area: string | null;
+  latitude: number | null;
+  longitude: number | null;
   listing_images: ListingImage[];
 };
 
@@ -50,6 +57,13 @@ export default function EditListingForm({
   const [submitting, setSubmitting] = useState(false);
   const [statusText, setStatusText] = useState("");
   const [localError, setLocalError] = useState("");
+
+  const [latitude, setLatitude] = useState<number | null>(
+    listing.latitude ?? null
+  );
+  const [longitude, setLongitude] = useState<number | null>(
+    listing.longitude ?? null
+  );
 
   async function handleSubmit(formEl: HTMLFormElement) {
     setSubmitting(true);
@@ -103,6 +117,8 @@ export default function EditListingForm({
       submitData.set("category_id", rawFormData.get("category_id") as string);
       submitData.set("location_city", rawFormData.get("location_city") as string);
       submitData.set("location_area", rawFormData.get("location_area") as string);
+      submitData.set("latitude", latitude !== null ? String(latitude) : "");
+      submitData.set("longitude", longitude !== null ? String(longitude) : "");
       newImageUrls.forEach((url) => submitData.append("new_image_urls", url));
 
       await updateListing(submitData);
@@ -255,6 +271,18 @@ export default function EditListingForm({
         </div>
 
         <div>
+          <label className={labelClassName}>Titik Lokasi di Peta</label>
+          <LocationPicker
+            latitude={latitude}
+            longitude={longitude}
+            onChange={(lat, lng) => {
+              setLatitude(lat);
+              setLongitude(lng);
+            }}
+          />
+        </div>
+
+        <div>
           <label className={labelClassName} htmlFor="images">
             Tambah Foto Baru (opsional)
           </label>
@@ -279,4 +307,4 @@ export default function EditListingForm({
       </form>
     </main>
   );
-            }
+                     }
