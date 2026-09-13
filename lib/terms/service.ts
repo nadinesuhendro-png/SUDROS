@@ -1,5 +1,6 @@
 // PATH: lib/terms/service.ts
-// AKSI: BUAT FILE BARU
+// AKSI: GANTI TOTAL (sementara — versi diagnostic: tangkap & kembalikan error asli dari Supabase,
+// alih-alih dibuang dan dianggap "tidak ada versi aktif" begitu saja)
 
 import { createClient } from "@/lib/supabase/server";
 
@@ -19,27 +20,47 @@ type TermsVersionRow = {
   effective_at: string;
 };
 
-// Ambil versi Terms yang sedang aktif. Return null kalau tidak ada
-// (kasus darurat — harus di-treat sebagai FAIL CLOSED oleh pemanggil,
-// bukan diizinkan lewat begitu saja).
-export async function getActiveTermsVersion(): Promise<ActiveTermsVersion | null> {
+export type ActiveTermsResult =
+  | { ok: true; data: ActiveTermsVersion }
+  | { ok: false; reason: "not_found" | "error"; errorMessage?: string };
+
+// Versi diagnostic — kembalikan hasil terstruktur (bukan null polos) supaya
+// pemanggil tahu PERSIS kenapa gagal: benar-benar tidak ada versi aktif,
+// atau ada error dari Supabase yang sebelumnya dibuang diam-diam.
+export async function getActiveTermsVersionDebug(): Promise<ActiveTermsResult> {
   const supabase = await createClient();
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("terms_versions")
     .select("id, version, title, content, effective_at")
     .eq("is_active", true)
     .maybeSingle<TermsVersionRow>();
 
-  if (!data) return null;
+  if (error) {
+    return { ok: false, reason: "error", errorMessage: `${error.code || ""} ${error.message}`.trim() };
+  }
+
+  if (!data) {
+    return { ok: false, reason: "not_found" };
+  }
 
   return {
-    id: data.id,
-    version: data.version,
-    title: data.title,
-    content: data.content,
-    effectiveAt: data.effective_at,
+    ok: true,
+    data: {
+      id: data.id,
+      version: data.version,
+      title: data.title,
+      content: data.content,
+      effectiveAt: data.effective_at,
+    },
   };
+}
+
+// Tetap dipertahankan (dipakai di createListing action) — sekarang delegasi
+// ke versi debug di atas supaya konsisten
+export async function getActiveTermsVersion(): Promise<ActiveTermsVersion | null> {
+  const result = await getActiveTermsVersionDebug();
+  return result.ok ? result.data : null;
 }
 
 // Cek apakah user sudah menyetujui versi Terms yang SEDANG aktif
@@ -86,4 +107,4 @@ export async function saveTermsAgreement(
   }
 
   return { ok: true };
-            }
+}
