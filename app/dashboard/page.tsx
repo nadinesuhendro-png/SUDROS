@@ -1,6 +1,3 @@
-// AKSI: GANTI TOTAL (tambah tracking listing_created)
-// PATH: app/dashboard/page.tsx
-
 import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -13,6 +10,7 @@ import {
   MessageCircle,
   Heart,
   ArrowRight,
+  BarChart3,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/(auth)/actions";
@@ -335,6 +333,17 @@ export default async function DashboardPage() {
                 Lihat transaksi <ArrowRight className="h-3 w-3" />
               </span>
             </Link>
+            <Link
+              href="/dashboard/traffic"
+              className="flex flex-col gap-1 rounded-[var(--radius)] border p-4 text-sm font-medium"
+              style={{ backgroundColor: "#F1F7FF", borderColor: "#DCEEFF", color: "#08254D" }}
+            >
+              <BarChart3 className="h-5 w-5" style={{ color: "#0757C9" }} />
+              Traffic Toko
+              <span className="flex items-center gap-1 text-xs font-normal text-[var(--muted-foreground)]">
+                Lihat pengunjung <ArrowRight className="h-3 w-3" />
+              </span>
+            </Link>
           </div>
         </div>
       </div>
@@ -353,4 +362,4 @@ export default async function DashboardPage() {
       </form>
     </main>
   );
-}
+          }
