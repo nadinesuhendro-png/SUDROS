@@ -1,7 +1,5 @@
-// PATH: app/admin/users/page.tsx
-// AKSI: UPDATE FILE (auth check & AdminNav dipindah ke layout.tsx, jadi tidak dobel)
-
 import { createClient } from "@/lib/supabase/server";
+import { markAdminSectionViewed } from "@/lib/admin/nav-counts";
 
 type UserRow = {
   id: string;
@@ -12,6 +10,8 @@ type UserRow = {
 };
 
 export default async function AdminUsersPage() {
+  await markAdminSectionViewed("users");
+
   const supabase = await createClient();
 
   const { data: users } = await supabase
