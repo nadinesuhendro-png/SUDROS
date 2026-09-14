@@ -1,10 +1,9 @@
-// PATH: app/admin/feedback/actions.ts
-// AKSI: FILE BARU
-
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -17,29 +16,50 @@ async function requireAdmin() {
     redirect("/login");
   }
 
-  const { data: myProfile } = await supabase
+  const { data: profile } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .single();
 
-  if (!myProfile || myProfile.role !== "admin") {
+  if (profile?.role !== "admin") {
     redirect("/dashboard");
   }
 
-  return supabase;
+  return user;
 }
 
 export async function markFeedbackRead(formData: FormData) {
-  const supabase = await requireAdmin();
-
+  await requireAdmin();
   const id = formData.get("id") as string;
+  if (!id) return;
 
-  if (!id) {
-    redirect("/admin/feedback");
-  }
+  const adminSupabase = createAdminClient();
+  await adminSupabase.from("feedback").update({ is_read: true }).eq("id", id);
 
-  await supabase.from("feedback").update({ is_read: true }).eq("id", id);
+  revalidatePath("/admin/feedback");
+}
 
-  redirect("/admin/feedback");
+export async function deleteFeedback(formData: FormData) {
+  await requireAdmin();
+  const id = formData.get("id") as string;
+  if (!id) return;
+
+  const adminSupabase = createAdminClient();
+  // Soft-delete: is_deleted = true, bukan DELETE beneran, supaya audit trail tetap ada
+  await adminSupabase.from("feedback").update({ is_deleted: true }).eq("id", id);
+
+  revalidatePath("/admin/feedback");
+}
+
+export async function deleteAllFeedback() {
+  await requireAdmin();
+
+  const adminSupabase = createAdminClient();
+  await adminSupabase
+    .from("feedback")
+    .update({ is_deleted: true })
+    .eq("is_deleted", false);
+
+  revalidatePath("/admin/feedback");
 }
