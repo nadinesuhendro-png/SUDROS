@@ -1,8 +1,6 @@
-// PATH: app/admin/payments/page.tsx
-// AKSI: UPDATE FILE (auth check & AdminNav dipindah ke layout.tsx, jadi tidak dobel)
-
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
+import { markAdminSectionViewed } from "@/lib/admin/nav-counts";
 import { confirmPaymentAction, rejectPaymentAction } from "./actions";
 
 type OrderRow = {
@@ -25,6 +23,8 @@ function formatPrice(price: number) {
 }
 
 export default async function AdminPaymentsPage() {
+  await markAdminSectionViewed("payments");
+
   const supabase = await createClient();
 
   const { data: orders } = await supabase
