@@ -1,9 +1,7 @@
-// AKSI: GANTI SELURUH ISI FILE (hapus collage foto di section Dari Lokal Untuk Lokal, kembali ke teks polos)
-// PATH: app/page.tsx
-
 import type { Metadata } from "next";
 import fs from "node:fs";
 import path from "node:path";
+import { after } from "next/server";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,6 +13,7 @@ import { ListingCard, type ListingCardData } from "@/components/listing-card";
 import { TrackLink } from "@/components/analytics/track-link";
 import { TrackedSearchForm } from "@/components/analytics/tracked-search-form";
 import { PageViewTracker } from "@/components/analytics/page-view-tracker";
+import { logPageView } from "@/lib/analytics/log-page-view";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -91,6 +90,9 @@ export default async function HomePage({
   searchParams: Promise<{ q?: string; category?: string; city?: string }>;
 }) {
   const { q, category, city } = await searchParams;
+
+  after(() => logPageView("site", "/"));
+
   const supabase = await createClient();
 
   const { data: categories } = await supabase
@@ -117,8 +119,6 @@ export default async function HomePage({
   const listingList = listings || [];
   const cities = Array.from(new Set(listingList.map((l) => l.location_city))).slice(0, 8);
 
-  // Kategori/lokasi punya rute SEO sendiri (/kategori/[slug], /lokasi/[slug]);
-  // fallback ke pencarian teks kalau nama kategorinya belum ada di database.
   function categoryHref(label: string) {
     const match = (categories || []).find(
       (c) => c.name.toLowerCase() === label.toLowerCase()
@@ -523,4 +523,4 @@ export default async function HomePage({
       <SiteFooter />
     </div>
   );
-}
+    }
