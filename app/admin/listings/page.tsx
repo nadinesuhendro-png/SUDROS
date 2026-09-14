@@ -1,8 +1,6 @@
-// PATH: app/admin/listings/page.tsx
-// AKSI: GANTI TOTAL (tambah: baca ?highlight=id dari notifikasi, sorot + auto-scroll ke listing itu)
-
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
+import { markAdminSectionViewed } from "@/lib/admin/nav-counts";
 import { moderateListing } from "./actions";
 import ModerationButton from "./ModerationButton";
 import ScrollToHighlight from "./ScrollToHighlight";
@@ -48,6 +46,8 @@ export default async function AdminListingsPage({
     listing_id?: string;
   }>;
 }) {
+  await markAdminSectionViewed("listings");
+
   const params = await searchParams;
   const highlightId = params.highlight || null;
 
