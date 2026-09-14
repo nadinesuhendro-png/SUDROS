@@ -1,11 +1,10 @@
-// PATH: app/sellers/[id]/page.tsx
-// AKSI: BUAT FILE BARU
-
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { after } from "next/server";
 import { Navbar } from "@/components/navbar";
 import { createClient } from "@/lib/supabase/server";
+import { logPageView } from "@/lib/analytics/log-page-view";
 
 type SellerProfile = {
   username: string;
@@ -45,6 +44,8 @@ export default async function SellerProfilePage({
   if (!seller) {
     notFound();
   }
+
+  after(() => logPageView("seller_profile", `/sellers/${id}`, id));
 
   const { data: listings } = await supabase
     .from("listings")
@@ -131,4 +132,4 @@ export default async function SellerProfilePage({
       </main>
     </>
   );
-    }
+}
