@@ -13,6 +13,7 @@ const navItems: { href: string; label: string; countKey?: keyof AdminNavCounts }
   { href: "/admin/payments", label: "Payments", countKey: "payments" },
   { href: "/admin/ai-usage", label: "AI Usage" },
   { href: "/admin/agents", label: "Agents", countKey: "agents" },
+  { href: "/admin/traffic", label: "Traffic" },
   { href: "/admin/marketing", label: "Marketing" },
   { href: "/admin/terms", label: "Legal" },
   { href: "/admin/anchor", label: "Penjual Jangkar" },
@@ -63,4 +64,4 @@ export default function AdminNav({ counts }: { counts: AdminNavCounts }) {
       })}
     </div>
   );
-}
+                    }
