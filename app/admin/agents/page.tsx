@@ -1,7 +1,5 @@
-// PATH: app/admin/agents/page.tsx
-// AKSI: BUAT FILE BARU (dashboard status 9 agent dari tabel agent_tasks)
-
 import { createClient } from "@/lib/supabase/server";
+import { markAdminSectionViewed } from "@/lib/admin/nav-counts";
 
 type TaskRow = {
   id: string;
@@ -43,6 +41,8 @@ function formatOutput(output: unknown): string {
 }
 
 export default async function AdminAgentsPage() {
+  await markAdminSectionViewed("agents");
+
   const supabase = await createClient();
 
   const { data: allTasks } = await supabase
@@ -195,4 +195,4 @@ export default async function AdminAgentsPage() {
       </div>
     </div>
   );
-}
+              }
