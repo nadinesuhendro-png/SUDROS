@@ -1,8 +1,5 @@
-// PATH: app/admin/feedback/page.tsx
-// AKSI: FILE BARU
-
 import { createClient } from "@/lib/supabase/server";
-import { markFeedbackRead } from "./actions";
+import { deleteAllFeedback, deleteFeedback, markFeedbackRead } from "./actions";
 
 type FeedbackRow = {
   id: string;
@@ -28,6 +25,7 @@ export default async function AdminFeedbackPage() {
   const { data: feedbackList } = await supabase
     .from("feedback")
     .select("id, message, is_read, created_at, profiles(username)")
+    .eq("is_deleted", false)
     .order("is_read", { ascending: true })
     .order("created_at", { ascending: false })
     .returns<FeedbackRow[]>();
@@ -37,13 +35,25 @@ export default async function AdminFeedbackPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-lg font-semibold">Saran & Masukan</h1>
-        <p className="text-sm text-gray-500">
-          {unreadCount > 0
-            ? `${unreadCount} masukan belum dibaca`
-            : "Semua masukan sudah dibaca"}
-        </p>
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h1 className="text-lg font-semibold">Saran & Masukan</h1>
+          <p className="text-sm text-gray-500">
+            {unreadCount > 0
+              ? `${unreadCount} masukan belum dibaca`
+              : "Semua masukan sudah dibaca"}
+          </p>
+        </div>
+        {items.length > 0 ? (
+          <form action={deleteAllFeedback}>
+            <button
+              type="submit"
+              className="text-xs text-gray-500 underline"
+            >
+              Hapus semua
+            </button>
+          </form>
+        ) : null}
       </div>
 
       {items.length === 0 ? (
@@ -69,20 +79,31 @@ export default async function AdminFeedbackPage() {
                     {formatDate(item.created_at)}
                   </p>
                 </div>
-                {!item.is_read ? (
-                  <form action={markFeedbackRead}>
+                <div className="flex flex-shrink-0 items-center gap-2">
+                  {!item.is_read ? (
+                    <form action={markFeedbackRead}>
+                      <input type="hidden" name="id" value={item.id} />
+                      <button
+                        type="submit"
+                        className="rounded-[var(--radius)] border px-2 py-1 text-xs font-medium"
+                        style={{ borderColor: "var(--primary)", color: "var(--primary)" }}
+                      >
+                        Tandai dibaca
+                      </button>
+                    </form>
+                  ) : (
+                    <span className="text-xs text-gray-400">Sudah dibaca</span>
+                  )}
+                  <form action={deleteFeedback}>
                     <input type="hidden" name="id" value={item.id} />
                     <button
                       type="submit"
-                      className="rounded-[var(--radius)] border px-2 py-1 text-xs font-medium"
-                      style={{ borderColor: "var(--primary)", color: "var(--primary)" }}
+                      className="text-xs text-gray-500 underline"
                     >
-                      Tandai dibaca
+                      Hapus
                     </button>
                   </form>
-                ) : (
-                  <span className="text-xs text-gray-400">Sudah dibaca</span>
-                )}
+                </div>
               </div>
               <p className="mt-2 whitespace-pre-line text-sm">{item.message}</p>
             </div>
@@ -92,4 +113,3 @@ export default async function AdminFeedbackPage() {
     </div>
   );
 }
-
