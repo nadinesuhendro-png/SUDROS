@@ -1,6 +1,3 @@
-// PATH: app/dashboard/messages/actions.ts
-// AKSI: GANTI SELURUH ISI FILE (perbaikan query listing_id null)
-
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
@@ -90,4 +87,45 @@ export async function sendMessage(formData: FormData) {
 
   revalidatePath(`/dashboard/messages/${conversationId}`);
   revalidatePath("/dashboard/messages");
+}
+
+export async function hideConversation(formData: FormData) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const conversationId = formData.get("conversation_id") as string;
+  if (!conversationId) {
+    return;
+  }
+
+  await supabase.rpc("hide_conversation_for_user", {
+    p_conversation_id: conversationId,
+  });
+
+  revalidatePath("/dashboard/messages");
+  redirect("/dashboard/messages");
+}
+
+export async function hideAllConversations() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  await supabase.rpc("hide_all_conversations_for_user");
+
+  revalidatePath("/dashboard/messages");
+  redirect("/dashboard/messages");
 }
