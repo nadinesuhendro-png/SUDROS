@@ -1,8 +1,6 @@
-// PATH: app/admin/reports/page.tsx
-// AKSI: UPDATE FILE (auth check & AdminNav dipindah ke layout.tsx, jadi tidak dobel)
-
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { markAdminSectionViewed } from "@/lib/admin/nav-counts";
 import { resolveReport } from "./actions";
 
 type ReportRow = {
@@ -17,6 +15,8 @@ type ReportRow = {
 };
 
 export default async function AdminReportsPage() {
+  await markAdminSectionViewed("reports");
+
   const supabase = await createClient();
 
   const { data: reports } = await supabase
