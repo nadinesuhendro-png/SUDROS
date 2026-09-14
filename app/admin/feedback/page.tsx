@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { markAdminSectionViewed } from "@/lib/admin/nav-counts";
 import { deleteAllFeedback, deleteFeedback, markFeedbackRead } from "./actions";
 
 type FeedbackRow = {
@@ -20,6 +21,8 @@ function formatDate(dateStr: string) {
 }
 
 export default async function AdminFeedbackPage() {
+  await markAdminSectionViewed("feedback");
+
   const supabase = await createClient();
 
   const { data: feedbackList } = await supabase
@@ -46,10 +49,7 @@ export default async function AdminFeedbackPage() {
         </div>
         {items.length > 0 ? (
           <form action={deleteAllFeedback}>
-            <button
-              type="submit"
-              className="text-xs text-gray-500 underline"
-            >
+            <button type="submit" className="text-xs text-gray-500 underline">
               Hapus semua
             </button>
           </form>
@@ -96,10 +96,7 @@ export default async function AdminFeedbackPage() {
                   )}
                   <form action={deleteFeedback}>
                     <input type="hidden" name="id" value={item.id} />
-                    <button
-                      type="submit"
-                      className="text-xs text-gray-500 underline"
-                    >
+                    <button type="submit" className="text-xs text-gray-500 underline">
                       Hapus
                     </button>
                   </form>
