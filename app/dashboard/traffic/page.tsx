@@ -51,7 +51,7 @@ export default async function DashboardTrafficPage() {
     p_bucket: "day",
   });
 
-  const chartRows = (seriesData as SeriesRow[] | null) || [];
+  const chartRows = (seriesData as unknown as SeriesRow[] | null) || [];
   const maxViews = Math.max(1, ...chartRows.map((r) => r.views));
 
   const cards = [
@@ -131,4 +131,4 @@ export default async function DashboardTrafficPage() {
       </div>
     </main>
   );
-          }
+}
