@@ -523,4 +523,4 @@ export default async function HomePage({
       <SiteFooter />
     </div>
   );
-    }
+      }
