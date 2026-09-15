@@ -64,4 +64,4 @@ export default function AdminNav({ counts }: { counts: AdminNavCounts }) {
       })}
     </div>
   );
-                    }
+}
