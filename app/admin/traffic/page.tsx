@@ -39,15 +39,13 @@ export default async function AdminTrafficPage() {
     getStats(supabase, null),
   ]);
 
-  const { data: series } = await supabase
-    .rpc("get_traffic_series", {
-      p_seller_id: null,
-      p_since: daysAgo(30),
-      p_bucket: "day",
-    })
-    .returns<SeriesRow[]>();
+  const { data: seriesData } = await supabase.rpc("get_traffic_series", {
+    p_seller_id: null,
+    p_since: daysAgo(30),
+    p_bucket: "day",
+  });
 
-  const chartRows = series || [];
+  const chartRows = (seriesData as SeriesRow[] | null) || [];
   const maxViews = Math.max(1, ...chartRows.map((r) => r.views));
 
   const cards = [
@@ -117,4 +115,4 @@ export default async function AdminTrafficPage() {
       </div>
     </div>
   );
-}
+                  }
