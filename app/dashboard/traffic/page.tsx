@@ -133,4 +133,4 @@ export default async function DashboardTrafficPage() {
       </div>
     </main>
   );
-              }
+}
