@@ -267,7 +267,7 @@ function Icon({
 }
 
 /* =========================================================
-   SUDROS PREMIUM LOGO
+   SUDROS LOGO (pakai file gambar asli, bukan SVG buatan)
 ========================================================= */
 
 function SudrosLogo({
@@ -282,47 +282,14 @@ function SudrosLogo({
       aria-label="SUDROS"
     >
       <div className="relative flex items-center">
-        {/* Mark */}
-        <div
-          className="relative flex shrink-0 items-center justify-center overflow-hidden rounded-xl"
-          style={{
-            width: compact ? 40 : 48,
-            height: compact ? 40 : 48,
-            background:
-              "linear-gradient(145deg, #0C5DA7 0%, #168ED0 55%, #39B9E8 100%)",
-            boxShadow:
-              "0 7px 18px rgba(18,104,179,0.24)",
-          }}
-        >
-          {/* stylized S */}
-          <svg
-            viewBox="0 0 48 48"
-            className="h-[72%] w-[72%]"
-            fill="none"
-          >
-            <path
-              d="M36 10C31 7 23 7 17 9C12 11 10 15 12 18C14 21 19 22 25 23C31 24 36 26 37 30C38 34 34 38 28 39C21 40 14 38 11 35"
-              stroke="white"
-              strokeWidth="5"
-              strokeLinecap="round"
-            />
-
-            <path
-              d="M12 18C16 14 21 12 27 12"
-              stroke="white"
-              strokeWidth="3"
-              strokeLinecap="round"
-              opacity=".45"
-            />
-
-            <path
-              d="M36 30C32 34 27 36 21 36"
-              stroke="#BCEEFF"
-              strokeWidth="3"
-              strokeLinecap="round"
-            />
-          </svg>
-        </div>
+        <Image
+          src="/brand/sudros-logo.png"
+          alt="SUDROS"
+          width={80}
+          height={50}
+          priority
+          className={compact ? "h-auto w-10" : "h-auto w-20 sm:w-24"}
+        />
 
         {!compact && (
           <div className="ml-3 leading-none">
@@ -1451,4 +1418,4 @@ export default async function HomePage({
       <SiteFooter />
     </div>
   );
-  }
+    }
