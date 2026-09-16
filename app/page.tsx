@@ -288,7 +288,7 @@ function SudrosLogo({
           width={80}
           height={50}
           priority
-          className={compact ? "h-auto w-10" : "h-auto w-20 sm:w-24"}
+          className={compact ? "h-auto w-16 sm:w-20" : "h-auto w-20 sm:w-24"}
         />
 
         {!compact && (
@@ -1418,4 +1418,4 @@ export default async function HomePage({
       <SiteFooter />
     </div>
   );
-    }
+              }
