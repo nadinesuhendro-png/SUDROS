@@ -284,4 +284,4 @@ export function Sparkline({
       ))}
     </svg>
   );
-}
+  }
