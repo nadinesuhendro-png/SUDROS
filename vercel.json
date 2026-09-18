@@ -1,8 +1,15 @@
+// AKSI: GANTI SELURUH ISI FILE
+// PATH: vercel.json
+
 {
   "crons": [
     {
       "path": "/api/cron/agents",
       "schedule": "0 1 * * *"
+    },
+    {
+      "path": "/api/cron/usage-guardian",
+      "schedule": "0 6 * * *"
     }
   ]
 }
