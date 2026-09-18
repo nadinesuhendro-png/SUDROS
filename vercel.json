@@ -1,6 +1,3 @@
-// AKSI: GANTI SELURUH ISI FILE
-// PATH: vercel.json
-
 {
   "crons": [
     {
