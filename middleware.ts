@@ -1,5 +1,5 @@
+// AKSI: GANTI SELURUH ISI FILE (tambah proteksi role admin + rewrite subdomain seller)
 // PATH: middleware.ts
-// AKSI: UPDATE FILE (tambah proteksi role admin)
 
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
@@ -9,6 +9,17 @@ type CookieToSet = {
   value: string;
   options?: Record<string, unknown>;
 };
+
+const ROOT_DOMAIN = "sudros.id";
+
+function extractSubdomain(host: string): string | null {
+  const hostname = host.split(":")[0].toLowerCase();
+  if (hostname === ROOT_DOMAIN || hostname === `www.${ROOT_DOMAIN}`) return null;
+  if (!hostname.endsWith(`.${ROOT_DOMAIN}`)) return null;
+  const sub = hostname.slice(0, -(`.${ROOT_DOMAIN}`.length + 1));
+  if (!sub || sub === "www") return null;
+  return sub;
+}
 
 export async function middleware(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -37,6 +48,29 @@ export async function middleware(request: NextRequest) {
       },
     },
   });
+
+  // ---- Rewrite subdomain toko seller (namatoko.sudros.id) ----
+  const host = request.headers.get("host") || "";
+  const subdomain = extractSubdomain(host);
+
+  if (subdomain) {
+    const { data: sub } = await supabase
+      .from("seller_subdomains")
+      .select("owner_id")
+      .eq("subdomain", subdomain)
+      .eq("status", "active")
+      .gt("expires_at", new Date().toISOString())
+      .maybeSingle<{ owner_id: string }>();
+
+    if (sub) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/sellers/${sub.owner_id}`;
+      return NextResponse.rewrite(url);
+    }
+
+    // Subdomain tidak ditemukan/tidak aktif — arahkan ke domain utama
+    return NextResponse.redirect(`https://${ROOT_DOMAIN}`);
+  }
 
   const {
     data: { user },
