@@ -599,9 +599,7 @@ export default async function DashboardPage() {
                     className="h-full w-full object-contain"
                   />
                 </div>
-                <div className="w-10 h-10 mx-auto mb-3 rounded-full bg-amber-400/10 ring-1 ring-amber-400/20 flex items-center justify-center">
-                  <Star size={18} className="text-amber-400" />
-                </div>
+                
                 <p className="text-sm font-semibold text-amber-100">
                   Temukan. Tawarkan. Terhubung.
                 </p>
