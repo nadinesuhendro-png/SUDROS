@@ -91,4 +91,4 @@ export default async function AdminSubdomainsPage() {
       </div>
     </main>
   );
-    }
+}
