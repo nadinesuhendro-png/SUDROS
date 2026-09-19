@@ -593,4 +593,4 @@ export default async function DashboardPage() {
       </div>
     </main>
   );
-      }
+}
