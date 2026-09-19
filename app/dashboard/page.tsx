@@ -52,7 +52,14 @@ function formatRelative(dateStr: string) {
 }
 
 function getGreeting() {
-  const hour = new Date().getHours();
+  const hour = parseInt(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Jakarta",
+      hour: "numeric",
+      hourCycle: "h23",
+    }).format(new Date()),
+    10
+  );
   if (hour < 11) return "Selamat pagi";
   if (hour < 15) return "Selamat siang";
   if (hour < 19) return "Selamat sore";
@@ -578,4 +585,4 @@ export default async function DashboardPage() {
       </div>
     </main>
   );
-        }
+}
