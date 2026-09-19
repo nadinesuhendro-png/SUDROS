@@ -589,6 +589,16 @@ export default async function DashboardPage() {
               <div className="absolute -top-12 -right-12 w-32 h-32 bg-amber-400/10 rounded-full blur-2xl" />
               <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-orange-400/10 rounded-full blur-2xl" />
               <div className="relative">
+                <div className="relative">
+                <div className="w-10 h-10 mx-auto mb-3 rounded-full bg-amber-400/10 ring-1 ring-amber-400/20 flex items-center justify-center overflow-hidden p-1.5">
+                  <Image
+                    src="/brand/sudros-logo.png"
+                    alt="SUDROS"
+                    width={40}
+                    height={40}
+                    className="h-full w-full object-contain"
+                  />
+                </div>
                 <div className="w-10 h-10 mx-auto mb-3 rounded-full bg-amber-400/10 ring-1 ring-amber-400/20 flex items-center justify-center">
                   <Star size={18} className="text-amber-400" />
                 </div>
