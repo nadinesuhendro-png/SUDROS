@@ -1,10 +1,11 @@
-// AKSI: BUAT FILE BARU
+// AKSI: GANTI SELURUH ISI FILE
 // PATH: components/share-button.tsx
 
 "use client";
 
 import { useState } from "react";
 import { track } from "@/lib/analytics/track";
+import { copyToClipboard } from "@/lib/utils/copy-to-clipboard";
 
 export function ShareButton({
   listingId,
@@ -16,6 +17,7 @@ export function ShareButton({
   url: string;
 }) {
   const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
 
   async function handleShare() {
     track("social_share_clicked", { listing_id: listingId, title });
@@ -29,10 +31,14 @@ export function ShareButton({
       }
     }
 
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      await navigator.clipboard.writeText(url);
+    const success = await copyToClipboard(url);
+    if (success) {
       setCopied(true);
+      setCopyFailed(false);
       setTimeout(() => setCopied(false), 2000);
+    } else {
+      setCopyFailed(true);
+      setTimeout(() => setCopyFailed(false), 2000);
     }
   }
 
@@ -43,8 +49,7 @@ export function ShareButton({
       className="rounded-[var(--radius)] border px-4 py-2.5 text-sm font-medium"
       style={{ borderColor: "var(--primary)", color: "var(--primary)" }}
     >
-      {copied ? "Link disalin" : "Bagikan"}
+      {copied ? "Link disalin" : copyFailed ? "Gagal menyalin" : "Bagikan"}
     </button>
   );
 }
-
