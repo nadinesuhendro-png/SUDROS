@@ -42,14 +42,33 @@ function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("id-ID", { dateStyle: "long" });
 }
 
+function formatShortDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "Asia/Jakarta",
+  });
+}
+
+function jakartaDateOnly(date: Date): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(date);
+}
+
 function formatRelative(dateStr: string) {
-  const diffDays = Math.floor(
-    (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24)
+  const target = jakartaDateOnly(new Date(dateStr));
+  const today = jakartaDateOnly(new Date());
+
+  const diffDays = Math.round(
+    (new Date(today).getTime() - new Date(target).getTime()) / (1000 * 60 * 60 * 24)
   );
-  if (diffDays <= 0) return "Hari ini";
-  if (diffDays === 1) return "Kemarin";
-  if (diffDays < 7) return `${diffDays} hari lalu`;
-  return formatDate(dateStr);
+
+  const dateLabel = formatShortDate(dateStr);
+
+  if (diffDays <= 0) return `Hari ini • ${dateLabel}`;
+  if (diffDays === 1) return `Kemarin • ${dateLabel}`;
+  if (diffDays < 7) return `${diffDays} hari lalu • ${dateLabel}`;
+  return dateLabel;
 }
 
 function getGreeting() {
@@ -593,4 +612,4 @@ export default async function DashboardPage() {
       </div>
     </main>
   );
-}
+    }
