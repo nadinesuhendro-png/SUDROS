@@ -24,7 +24,13 @@ export default function AdminNav({ counts }: { counts: AdminNavCounts }) {
   const pathname = usePathname();
 
   return (
-    <div className="sticky top-0 z-40 flex flex-wrap gap-2 border-b border-gray-200 bg-white pb-3 pt-2">
+    <div
+      className="sticky top-0 z-40 flex flex-wrap gap-2 border-b pb-3 pt-2"
+      style={{
+        backgroundColor: "var(--background, #ffffff)",
+        borderColor: "var(--border, #d1d5db)",
+      }}
+    >
       {navItems.map((item) => {
         const isActive =
           item.href === "/admin"
@@ -47,7 +53,8 @@ export default function AdminNav({ counts }: { counts: AdminNavCounts }) {
                   }
                 : {
                     borderColor: "var(--border, #d1d5db)",
-                    color: "var(--foreground, inherit)",
+                    color: "var(--foreground)",
+                    backgroundColor: "var(--card, transparent)",
                   }
             }
           >
