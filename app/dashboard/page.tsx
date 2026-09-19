@@ -23,6 +23,7 @@ import {
   ChevronRight,
   Infinity as InfinityIcon,
   CircleDot,
+  Globe,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/(auth)/actions";
@@ -533,6 +534,13 @@ export default async function DashboardPage() {
                     desc: "Data pengunjung toko",
                     grad: "from-amber-500 to-orange-500",
                   },
+                  {
+                    href: "/dashboard/subdomain",
+                    icon: Globe,
+                    label: "Subdomain Toko",
+                    desc: "Punya alamat sendiri",
+                    grad: "from-sky-500 to-blue-600",
+                  },
                 ].map((item, i) => (
                   <Link
                     key={i}
@@ -585,4 +593,4 @@ export default async function DashboardPage() {
       </div>
     </main>
   );
-}
+      }
