@@ -58,8 +58,7 @@ export async function middleware(request: NextRequest) {
       .from("seller_subdomains")
       .select("owner_id")
       .eq("subdomain", subdomain)
-      .eq("status", "active")
-      .gt("expires_at", new Date().toISOString())
+      .in("status", ["active", "grace_period"])
       .maybeSingle<{ owner_id: string }>();
 
     if (sub) {
