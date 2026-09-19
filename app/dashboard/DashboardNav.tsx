@@ -1,12 +1,9 @@
-// PATH: app/dashboard/DashboardNav.tsx
-// AKSI: GANTI SELURUH ISI FILE (hapus ThemeToggle dari sidebar, pindah ke halaman Profil)
-
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Compass, ClipboardList, Heart, Bell, User } from "lucide-react";
+import { Home, Compass, ClipboardList, Heart, Bell, User, Globe } from "lucide-react";
 
 type NavItem = {
   href: string;
@@ -21,6 +18,10 @@ const navItems: NavItem[] = [
   { href: "/dashboard/favorites", label: "Favorit", icon: Heart },
   { href: "/dashboard/notifications", label: "Notifikasi", icon: Bell },
   { href: "/dashboard/profile", label: "Profil", icon: User },
+];
+
+const sidebarExtraItems: NavItem[] = [
+  { href: "/dashboard/subdomain", label: "Subdomain Toko", icon: Globe },
 ];
 
 export default function DashboardNav({
@@ -74,6 +75,28 @@ export default function DashboardNav({
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 ) : null}
+              </Link>
+            );
+          })}
+
+          <div className="my-2 border-t border-white/10" />
+
+          {sidebarExtraItems.map((item) => {
+            const active = isActivePath(item.href);
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm"
+                style={{
+                  backgroundColor: active ? "rgba(255,255,255,0.1)" : "transparent",
+                  color: active ? "#ffffff" : "rgba(255,255,255,0.65)",
+                }}
+              >
+                <Icon className="h-5 w-5" />
+                {item.label}
               </Link>
             );
           })}
