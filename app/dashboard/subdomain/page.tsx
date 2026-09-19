@@ -1,6 +1,3 @@
-// AKSI: BUAT FILE BARU
-// PATH: app/dashboard/subdomain/page.tsx
-
 import { createClient } from "@/lib/supabase/server";
 import SubdomainRequestForm from "./SubdomainRequestForm";
 
@@ -37,6 +34,8 @@ export default async function SubdomainPage() {
             Status:{" "}
             {current.status === "active"
               ? `Aktif sampai ${current.expires_at ? new Date(current.expires_at).toLocaleDateString("id-ID") : "-"}`
+              : current.status === "grace_period"
+              ? "Masa tenggang — perpanjang sekarang sebelum subdomain dilepas"
               : current.status === "pending_payment"
               ? "Menunggu konfirmasi admin"
               : current.status === "rejected"
@@ -46,7 +45,10 @@ export default async function SubdomainPage() {
         </div>
       ) : null}
 
-      {!current || current.status === "rejected" || current.status === "expired" ? (
+      {!current ||
+      current.status === "rejected" ||
+      current.status === "expired" ||
+      current.status === "grace_period" ? (
         <SubdomainRequestForm />
       ) : null}
     </main>
