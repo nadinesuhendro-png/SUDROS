@@ -1,6 +1,3 @@
-// AKSI: BUAT FILE BARU
-// PATH: app/dashboard/subdomain/actions.ts
-
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
@@ -8,6 +5,8 @@ import { isValidSubdomain } from "@/lib/subdomains/reserved";
 import { revalidatePath } from "next/cache";
 
 type RequestResult = { error?: string; success?: boolean };
+
+const REUSABLE_STATUSES = ["expired", "rejected", "grace_period"];
 
 export async function requestSubdomain(
   _prev: RequestResult,
@@ -35,11 +34,11 @@ export async function requestSubdomain(
     .eq("subdomain", raw)
     .maybeSingle<{ id: string; status: string; owner_id: string }>();
 
-  if (existing && existing.status !== "expired" && existing.status !== "rejected") {
+  if (existing && !REUSABLE_STATUSES.includes(existing.status)) {
     return { error: "Subdomain ini sudah dipakai atau sedang diproses" };
   }
 
-  if (existing && (existing.status === "expired" || existing.status === "rejected") && existing.owner_id === user.id) {
+  if (existing && REUSABLE_STATUSES.includes(existing.status) && existing.owner_id === user.id) {
     const { error } = await supabase
       .from("seller_subdomains")
       .update({ status: "pending_payment", proof_image_url: proofUrl, updated_at: new Date().toISOString() })
