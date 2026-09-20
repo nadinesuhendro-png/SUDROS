@@ -1,9 +1,7 @@
-// PATH: app/pricing/page.tsx
-// AKSI: UPDATE FILE (tambah tombol Pilih Paket)
-
 import { Navbar } from "@/components/navbar";
 import { createClient } from "@/lib/supabase/server";
 import { createOrder } from "@/app/orders/actions";
+import PaymentAccountsList from "@/components/PaymentAccountsList";
 
 type PackageRow = {
   id: string;
@@ -37,6 +35,8 @@ export default async function PricingPage() {
     .eq("is_active", true)
     .order("price", { ascending: true })
     .returns<PackageRow[]>();
+
+  const hasPaidPackage = (packages || []).some((pkg) => pkg.price > 0);
 
   return (
     <>
@@ -104,6 +104,15 @@ export default async function PricingPage() {
             </div>
           ))}
         </div>
+
+        {hasPaidPackage ? (
+          <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-4">
+            <p className="mb-3 text-sm font-medium text-[var(--card-foreground)]">
+              Metode Pembayaran
+            </p>
+            <PaymentAccountsList />
+          </div>
+        ) : null}
       </main>
     </>
   );
