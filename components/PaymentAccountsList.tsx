@@ -14,13 +14,24 @@ export default async function PaymentAccountsList() {
   if (accounts.length === 0) return null;
 
   return (
-    <div className="space-y-3">
-      <p className="font-medium">Transfer ke salah satu rekening berikut:</p>
+    <div className="flex flex-col gap-2">
+      <p className="text-xs text-[var(--muted-foreground)]">
+        Transfer ke salah satu rekening berikut, lalu unggah bukti transfer:
+      </p>
       {accounts.map((acc) => (
-        <div key={acc.id} className="border rounded-lg p-3">
-          <p className="font-semibold">{acc.bank_name}</p>
-          <p className="text-lg tracking-wide">{acc.account_number}</p>
-          <p className="text-sm text-gray-500">a.n. {acc.account_holder_name}</p>
+        <div
+          key={acc.id}
+          className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--muted)] p-3"
+        >
+          <p className="text-sm font-semibold text-[var(--card-foreground)]">
+            {acc.bank_name}
+          </p>
+          <p className="text-base tracking-wide text-[var(--card-foreground)]">
+            {acc.account_number}
+          </p>
+          <p className="text-xs text-[var(--muted-foreground)]">
+            a.n. {acc.account_holder_name}
+          </p>
         </div>
       ))}
     </div>
