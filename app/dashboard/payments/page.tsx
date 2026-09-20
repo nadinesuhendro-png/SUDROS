@@ -1,7 +1,5 @@
-// PATH: app/dashboard/payments/page.tsx
-// AKSI: GANTI SELURUH ISI FILE (retrofit dark mode)
-
 import { createClient } from "@/lib/supabase/server";
+import PaymentAccountsList from "@/components/PaymentAccountsList";
 
 type OrderRow = {
   id: string;
@@ -26,6 +24,7 @@ function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleString("id-ID", {
     dateStyle: "medium",
     timeStyle: "short",
+    timeZone: "Asia/Jakarta",
   });
 }
 
@@ -71,6 +70,10 @@ export default async function PaymentHistoryPage() {
     .limit(1)
     .maybeSingle<{ expires_at: string; advertising_packages: { name: string } | null }>();
 
+  const hasPendingOrder = (orders || []).some(
+    (o) => o.payment_status === "pending"
+  );
+
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-4 p-6">
       <h1 className="text-lg font-semibold" style={{ color: "var(--primary-dark)" }}>
@@ -91,6 +94,15 @@ export default async function PaymentHistoryPage() {
           Belum ada paket berbayar aktif. Masih menggunakan paket Free.
         </div>
       )}
+
+      {hasPendingOrder ? (
+        <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-4">
+          <p className="mb-3 text-sm font-medium text-[var(--card-foreground)]">
+            Anda punya order menunggu pembayaran
+          </p>
+          <PaymentAccountsList />
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-2">
         {(orders || []).length === 0 ? (
