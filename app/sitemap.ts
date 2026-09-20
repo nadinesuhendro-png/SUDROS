@@ -1,52 +1,41 @@
-// AKSI: BUAT FILE BARU
-// PATH: app/sitemap.ts
-
-import type { MetadataRoute } from "next";
-import { createClient } from "@/lib/supabase/server";
-import { slugify } from "@/lib/slug";
-
-const SITE_URL = "https://www.sudros.id";
+import { MetadataRoute } from 'next'
+import { createClient } from '@/lib/supabase/server' // sesuaikan path client Supabase kamu
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const supabase = await createClient();
-
-  const { data: categories } = await supabase.from("categories").select("name");
-  const { data: listings } = await supabase
-    .from("listings")
-    .select("id, location_city, created_at")
-    .limit(5000);
+  const baseUrl = 'https://sudros.id'
 
   const staticRoutes: MetadataRoute.Sitemap = [
-    { url: `${SITE_URL}/`, changeFrequency: "daily", priority: 1 },
-    { url: `${SITE_URL}/pricing`, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${SITE_URL}/terms`, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${SITE_URL}/privacy`, changeFrequency: "yearly", priority: 0.3 },
-  ];
+    { url: baseUrl, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
+    { url: `${baseUrl}/pricing`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
+  ]
 
-  const categoryRoutes: MetadataRoute.Sitemap = (categories || []).map((c) => ({
-    url: `${SITE_URL}/kategori/${slugify(c.name)}`,
-    changeFrequency: "weekly",
-    priority: 0.7,
-  }));
+  const supabase = await createClient()
 
-  const cities = Array.from(
-    new Set((listings || []).map((l: { location_city: string }) => l.location_city))
-  );
-  const locationRoutes: MetadataRoute.Sitemap = cities.map((c) => ({
-    url: `${SITE_URL}/lokasi/${slugify(c)}`,
-    changeFrequency: "weekly",
-    priority: 0.7,
-  }));
+  // Listing aktif
+  const { data: listings } = await supabase
+    .from('listings')
+    .select('id, updated_at')
+    .eq('status', 'active')
 
-  const listingRoutes: MetadataRoute.Sitemap = (listings || []).map(
-    (l: { id: string; created_at: string }) => ({
-      url: `${SITE_URL}/listings/${l.id}`,
-      lastModified: l.created_at ? new Date(l.created_at) : undefined,
-      changeFrequency: "weekly",
-      priority: 0.6,
-    })
-  );
+  const listingRoutes: MetadataRoute.Sitemap = (listings ?? []).map((l) => ({
+    url: `${baseUrl}/listings/${l.id}`,
+    lastModified: l.updated_at ? new Date(l.updated_at) : new Date(),
+    changeFrequency: 'weekly',
+    priority: 0.6,
+  }))
 
-  return [...staticRoutes, ...categoryRoutes, ...locationRoutes, ...listingRoutes];
+  // Toko/seller
+  const { data: sellers } = await supabase
+    .from('profiles')
+    .select('id, updated_at')
+    .eq('is_seller', true) // sesuaikan nama kolom kamu kalau beda
+
+  const sellerRoutes: MetadataRoute.Sitemap = (sellers ?? []).map((s) => ({
+    url: `${baseUrl}/sellers/${s.id}`,
+    lastModified: s.updated_at ? new Date(s.updated_at) : new Date(),
+    changeFrequency: 'weekly',
+    priority: 0.5,
+  }))
+
+  return [...staticRoutes, ...listingRoutes, ...sellerRoutes]
 }
-
