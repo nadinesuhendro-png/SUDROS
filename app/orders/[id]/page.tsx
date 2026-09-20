@@ -1,9 +1,7 @@
-// PATH: app/orders/[id]/page.tsx
-// AKSI: BUAT FILE BARU
-
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import UploadProofForm from "./UploadProofForm";
+import PaymentAccountsList from "@/components/PaymentAccountsList";
 
 type OrderDetail = {
   id: string;
@@ -29,6 +27,7 @@ function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleString("id-ID", {
     dateStyle: "medium",
     timeStyle: "short",
+    timeZone: "Asia/Jakarta",
   });
 }
 
@@ -69,15 +68,6 @@ export default async function OrderDetailPage({
     notFound();
   }
 
-  const { data: bankSettings } = await supabase
-    .from("admin_settings")
-    .select("key, value")
-    .in("key", ["bank_name", "bank_account_number", "bank_account_holder"]);
-
-  const bankMap = Object.fromEntries(
-    (bankSettings || []).map((s) => [s.key, s.value])
-  );
-
   return (
     <main className="mx-auto flex max-w-md flex-col gap-4 p-6">
       <h1 className="text-lg font-semibold" style={{ color: "var(--primary-dark)" }}>
@@ -103,10 +93,8 @@ export default async function OrderDetailPage({
         <>
           <div className="rounded-[var(--radius)] bg-yellow-50 p-4 text-sm">
             <p className="mb-2 font-medium">Instruksi Pembayaran</p>
-            <p>Bank: {bankMap.bank_name}</p>
-            <p>No. Rekening: {bankMap.bank_account_number}</p>
-            <p>Atas Nama: {bankMap.bank_account_holder}</p>
-            <p className="mt-2">Nominal: {formatPrice(order.amount)}</p>
+            <PaymentAccountsList />
+            <p className="mt-3">Nominal: {formatPrice(order.amount)}</p>
             <p className="mt-2 text-xs text-[var(--muted-foreground)]">
               Batas waktu: {formatDate(order.payment_deadline)}
             </p>
@@ -123,4 +111,4 @@ export default async function OrderDetailPage({
       ) : null}
     </main>
   );
-            }
+}
