@@ -11,6 +11,7 @@ const navItems: { href: string; label: string; countKey?: keyof AdminNavCounts }
   { href: "/admin/reports", label: "Reports", countKey: "reports" },
   { href: "/admin/packages", label: "Packages" },
   { href: "/admin/payments", label: "Payments", countKey: "payments" },
+  { href: "/admin/payment-accounts", label: "Rekening Pembayaran" },
   { href: "/admin/ai-usage", label: "AI Usage" },
   { href: "/admin/agents", label: "Agents", countKey: "agents" },
   { href: "/admin/traffic", label: "Traffic" },
