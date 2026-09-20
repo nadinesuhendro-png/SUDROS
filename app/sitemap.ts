@@ -14,7 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Listing aktif
   const { data: listings } = await supabase
     .from('listings')
-    .select('id, updated_at')
+    .select('id, updated_at, owner_id')
     .eq('status', 'active')
 
   const listingRoutes: MetadataRoute.Sitemap = (listings ?? []).map((l) => ({
@@ -24,15 +24,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
-  // Toko/seller
-  const { data: sellers } = await supabase
-    .from('profiles')
-    .select('id, updated_at')
-    .eq('is_seller', true) // sesuaikan nama kolom kamu kalau beda
+  // Toko/seller = profile yang punya minimal 1 listing aktif (dari owner_id di atas)
+  const sellerIds = [...new Set((listings ?? []).map((l) => l.owner_id).filter(Boolean))]
 
-  const sellerRoutes: MetadataRoute.Sitemap = (sellers ?? []).map((s) => ({
-    url: `${baseUrl}/sellers/${s.id}`,
-    lastModified: s.updated_at ? new Date(s.updated_at) : new Date(),
+  const sellerRoutes: MetadataRoute.Sitemap = sellerIds.map((id) => ({
+    url: `${baseUrl}/sellers/${id}`,
+    lastModified: new Date(),
     changeFrequency: 'weekly',
     priority: 0.5,
   }))
