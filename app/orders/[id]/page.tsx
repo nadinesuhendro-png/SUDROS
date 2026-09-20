@@ -74,7 +74,7 @@ export default async function OrderDetailPage({
         Order #{order.order_number}
       </h1>
 
-      <div className="rounded-[var(--radius)] border border-gray-200 p-4 text-sm">
+      <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-4 text-sm text-[var(--card-foreground)]">
         <p>Paket: {order.advertising_packages?.name}</p>
         <p>Jumlah: {formatPrice(order.amount)}</p>
         <p>
@@ -91,17 +91,17 @@ export default async function OrderDetailPage({
 
       {order.payment_status === "pending" ? (
         <>
-          <div className="rounded-[var(--radius)] bg-yellow-50 p-4 text-sm">
+          <div className="rounded-[var(--radius)] bg-yellow-50 p-4 text-sm text-yellow-900 dark:bg-yellow-950/30 dark:text-yellow-200">
             <p className="mb-2 font-medium">Instruksi Pembayaran</p>
             <PaymentAccountsList />
             <p className="mt-3">Nominal: {formatPrice(order.amount)}</p>
-            <p className="mt-2 text-xs text-[var(--muted-foreground)]">
+            <p className="mt-2 text-xs text-yellow-800 dark:text-yellow-400">
               Batas waktu: {formatDate(order.payment_deadline)}
             </p>
           </div>
 
           {order.proof_url ? (
-            <p className="rounded-[var(--radius)] bg-blue-50 px-4 py-3 text-sm text-blue-700">
+            <p className="rounded-[var(--radius)] bg-blue-50 px-4 py-3 text-sm text-blue-700 dark:bg-blue-950/30 dark:text-blue-300">
               Bukti transfer sudah dikirim. Menunggu verifikasi admin.
             </p>
           ) : (
