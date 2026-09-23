@@ -1,18 +1,15 @@
 // Taruh file ini di: app/admin/quick-add/page.tsx
+// FIX: dihapus query ke tabel "kota" — skema asli listings tidak punya kota_id (FK),
+// lokasi disimpan sebagai teks bebas di location_city & location_area.
 import { createAdminClient } from "@/lib/supabase/admin";
 import QuickAddForm from "./QuickAddForm";
 
 export default async function QuickAddPage() {
   const supabaseAdmin = createAdminClient();
 
-  // SESUAIKAN nama tabel/kolom kategori & kota sesuai skema yang sudah ada
+  // SESUAIKAN nama kolom kategori kalau beda (id, name)
   const { data: categories } = await supabaseAdmin
     .from("categories")
-    .select("id, name")
-    .order("name");
-
-  const { data: kotaList } = await supabaseAdmin
-    .from("kota") // SESUAIKAN kalau kota bukan tabel terpisah
     .select("id, name")
     .order("name");
 
@@ -22,8 +19,7 @@ export default async function QuickAddPage() {
       <p className="text-sm text-gray-500 mb-6">
         SUDROS menemukan → SUDROS mendaftarkan. Isi seadanya, foto boleh langsung dari WA/screenshot.
       </p>
-      <QuickAddForm categories={categories ?? []} kotaList={kotaList ?? []} />
+      <QuickAddForm categories={categories ?? []} />
     </div>
   );
 }
-
