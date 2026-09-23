@@ -1,9 +1,12 @@
 // Taruh file ini di: app/klaim/[token]/actions.ts
+// PERUBAHAN: setelah listing berhasil diklaim, otomatis insert ke seller_subdomains
+// pakai slug titipan yang sudah direservasi saat quick-add — subdomain langsung aktif,
+// konsisten sama link yang sudah dijanjikan ke seller di pesan outreach.
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export type ClaimResult = { success: true } | { success: false; error: string };
+export type ClaimResult = { success: true; subdomain: string | null } | { success: false; error: string };
 
 export async function claimListing(token: string, formData: FormData): Promise<ClaimResult> {
   const password = String(formData.get("password") || "");
@@ -15,10 +18,10 @@ export async function claimListing(token: string, formData: FormData): Promise<C
 
   const supabaseAdmin = createAdminClient();
 
-  // 1. Ambil listing berdasarkan claim_token
+  // 1. Ambil listing berdasarkan claim_token (termasuk slug titipan)
   const { data: listing, error: findError } = await supabaseAdmin
     .from("listings")
-    .select("id, owner_whatsapp, claim_status")
+    .select("id, owner_whatsapp, claim_status, slug")
     .eq("claim_token", token)
     .maybeSingle();
 
@@ -30,14 +33,14 @@ export async function claimListing(token: string, formData: FormData): Promise<C
     return { success: false, error: "Listing ini sudah pernah diklaim." };
   }
 
-  // 2. Konfirmasi nomor WA cocok (keamanan minimal — pastikan yang klaim benar pemiliknya)
+  // 2. Konfirmasi nomor WA cocok
   const normalize = (n: string) => n.replace(/\D/g, "");
   if (normalize(confirmWhatsapp) !== normalize(listing.owner_whatsapp || "")) {
     return { success: false, error: "Nomor WhatsApp tidak cocok dengan data listing." };
   }
 
-  // 3. Buat akun baru pakai nomor WA sebagai identifier (phone_confirm: true karena kita sudah verifikasi manual di atas)
-  //    PENTING: pastikan Phone auth aktif di Supabase Dashboard → Authentication → Providers
+  // 3. Buat akun baru pakai nomor WA sebagai identifier
+  //    PENTING: Phone auth harus aktif di Supabase Dashboard → Authentication → Providers
   const phone = normalize(listing.owner_whatsapp || "");
   const { data: newUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
     phone,
@@ -49,8 +52,7 @@ export async function claimListing(token: string, formData: FormData): Promise<C
     return { success: false, error: `Gagal buat akun: ${createUserError?.message ?? "unknown error"}` };
   }
 
-  // 4. Buat row profile (SESUAIKAN kalau ada trigger otomatis yang sudah bikin profile saat auth user dibuat —
-  //    kalau sudah ada trigger, skip insert ini)
+  // 4. Buat row profile (SKIP kalau sudah ada trigger otomatis saat auth user dibuat)
   const { error: profileError } = await supabaseAdmin.from("profiles").insert({
     id: newUser.user.id,
     phone,
@@ -72,6 +74,25 @@ export async function claimListing(token: string, formData: FormData): Promise<C
     return { success: false, error: `Gagal update listing: ${updateError.message}` };
   }
 
-  return { success: true };
-}
+  // 6. Pasang subdomain resmi (kalau ada slug titipan) — status "active" langsung karena
+  //    konteksnya listing assisted/anchor, tidak perlu approval manual tambahan.
+  //    SESUAIKAN nama kolom seller_subdomains kalau beda dari (owner_id, subdomain, status)
+  let assignedSubdomain: string | null = null;
+  if (listing.slug) {
+    const { error: subdomainError } = await supabaseAdmin.from("seller_subdomains").insert({
+      owner_id: newUser.user.id,
+      subdomain: listing.slug,
+      status: "active",
+    });
 
+    if (subdomainError) {
+      // Jangan gagalkan seluruh proses klaim cuma karena subdomain bentrok/gagal —
+      // listing tetap sah diklaim, subdomain bisa di-assign manual belakangan oleh admin.
+      console.error("Gagal pasang subdomain saat klaim:", subdomainError.message);
+    } else {
+      assignedSubdomain = listing.slug;
+    }
+  }
+
+  return { success: true, subdomain: assignedSubdomain };
+}
