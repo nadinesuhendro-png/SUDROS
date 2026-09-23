@@ -1,7 +1,7 @@
 // Taruh file ini di: app/(auth)/actions.ts
-// PERUBAHAN: login() sekarang terima "identifier" (email ATAU nomor HP), deteksi otomatis
-// mana yang diinput, lalu panggil signInWithPassword({email}) atau signInWithPassword({phone})
-// sesuai jenisnya. register() dan logout() tidak diubah.
+// PERUBAHAN: login() sekarang terima "identifier" (email ATAU nomor HP). Kalau nomor HP,
+// dikonversi ke email sintetis yang SAMA PERSIS dengan yang dibuat saat klaim
+// (lihat canonicalPhoneDigits di app/klaim/[token]/actions.ts — logic harus identik).
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
@@ -11,11 +11,16 @@ function isEmail(value: string): boolean {
   return value.includes("@");
 }
 
-function toE164(value: string): string {
+// HARUS identik dengan canonicalPhoneDigits di app/klaim/[token]/actions.ts
+function canonicalPhoneDigits(value: string): string {
   let digits = value.replace(/\D/g, "");
-  if (digits.startsWith("0")) digits = "62" + digits.slice(1); // 0812... -> 62812...
+  if (digits.startsWith("0")) digits = "62" + digits.slice(1);
   if (!digits.startsWith("62")) digits = "62" + digits;
-  return `+${digits}`;
+  return digits;
+}
+
+function phoneToSyntheticEmail(phoneDigits: string): string {
+  return `${phoneDigits}@wa.sudros.id`;
 }
 
 export async function login(formData: FormData) {
@@ -24,9 +29,11 @@ export async function login(formData: FormData) {
 
   const supabase = await createClient();
 
-  const { error } = isEmail(identifier)
-    ? await supabase.auth.signInWithPassword({ email: identifier, password })
-    : await supabase.auth.signInWithPassword({ phone: toE164(identifier), password });
+  const email = isEmail(identifier)
+    ? identifier
+    : phoneToSyntheticEmail(canonicalPhoneDigits(identifier));
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
     redirect(`/login?error=${encodeURIComponent(error.message)}`);
