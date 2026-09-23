@@ -26,6 +26,8 @@ export async function createAssistedListing(formData: FormData): Promise<QuickAd
   const locationCity = String(formData.get("location_city") || "").trim();
   const locationArea = String(formData.get("location_area") || "").trim();
   const categoryId = String(formData.get("category_id") || "").trim();
+  const priceRaw = String(formData.get("price") || "").trim();
+  const price = priceRaw ? Math.max(0, Number(priceRaw) || 0) : 0;
   const photos = formData.getAll("photos") as File[];
 
   if (!namaUsaha || !whatsapp || !categoryId || !locationCity) {
@@ -88,6 +90,7 @@ export async function createAssistedListing(formData: FormData): Promise<QuickAd
         category_id: categoryId,
         location_city: locationCity,
         location_area: locationArea || null,
+        price,
         owner_id: null,
         owner_whatsapp: whatsapp,
         claim_status: "unclaimed",
