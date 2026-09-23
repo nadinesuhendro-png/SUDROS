@@ -10,26 +10,34 @@ export default function KlaimPage() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [subdomain, setSubdomain] = useState<string | null | "pending">(null);
 
   function handleSubmit(formData: FormData) {
     setError(null);
     startTransition(async () => {
       const res = await claimListing(params.token, formData);
       if (res.success) {
-        setSuccess(true);
-        setTimeout(() => router.push("/login"), 2000);
+        setSubdomain(res.subdomain ?? "pending");
+        setTimeout(() => router.push("/login"), 3000);
       } else {
         setError(res.error);
       }
     });
   }
 
-  if (success) {
+  if (subdomain !== null) {
     return (
       <div className="max-w-sm mx-auto p-6 text-center">
         <h1 className="text-lg font-semibold mb-2">Berhasil! 🎉</h1>
-        <p className="text-sm text-gray-600">Akunmu sudah aktif. Mengarahkan ke halaman login...</p>
+        {subdomain !== "pending" ? (
+          <p className="text-sm text-gray-600 mb-2">
+            Etalase kamu sudah aktif di{" "}
+            <span className="font-mono font-medium">https://{subdomain}.sudros.id</span>
+          </p>
+        ) : (
+          <p className="text-sm text-gray-600 mb-2">Akunmu sudah aktif. Link etalase menyusul dari admin.</p>
+        )}
+        <p className="text-xs text-gray-400">Mengarahkan ke halaman login...</p>
       </div>
     );
   }
@@ -61,4 +69,3 @@ export default function KlaimPage() {
     </div>
   );
 }
-
