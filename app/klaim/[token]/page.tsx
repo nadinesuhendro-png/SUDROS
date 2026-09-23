@@ -12,7 +12,9 @@ export default function KlaimPage() {
   const [error, setError] = useState<string | null>(null);
   const [subdomain, setSubdomain] = useState<string | null | "pending">(null);
 
-  function handleSubmit(formData: FormData) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
     setError(null);
     startTransition(async () => {
       const res = await claimListing(params.token, formData);
@@ -48,7 +50,7 @@ export default function KlaimPage() {
       <p className="text-sm text-gray-500 mb-6">
         Konfirmasi nomor WA & buat password buat mulai kelola listingmu sendiri.
       </p>
-      <form action={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">Nomor WhatsApp (sesuai yang didaftarkan)</label>
           <input name="whatsapp" required className="w-full border rounded px-3 py-2" placeholder="628xxxxxxxxxx" />
