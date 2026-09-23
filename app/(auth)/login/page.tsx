@@ -1,3 +1,6 @@
+// Taruh file ini di: app/login/page.tsx
+// PERUBAHAN: field "email" (type=email) diganti jadi "identifier" (type=text) —
+// bisa diisi email ATAU nomor HP, sesuai perubahan di app/(auth)/actions.ts
 import Link from "next/link";
 import Image from "next/image";
 import { login } from "@/app/(auth)/actions";
@@ -35,9 +38,9 @@ export default async function LoginPage({
 
         <form action={login} className="flex flex-col gap-3">
           <input
-            type="email"
-            name="email"
-            placeholder="Email"
+            type="text"
+            name="identifier"
+            placeholder="Email atau No. WhatsApp"
             required
             className="rounded-md border border-[var(--border)] px-3 py-2 text-sm"
           />
