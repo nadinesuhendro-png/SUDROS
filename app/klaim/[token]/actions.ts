@@ -48,23 +48,31 @@ export async function claimListing(token: string, formData: FormData): Promise<C
     return `+${digits}`;
   }
   const phone = toE164(listing.owner_whatsapp || "");
+
+  // Username wajib diisi karena trigger `handle_new_user` di DB otomatis insert ke profiles
+  // dan ambil username dari raw_user_meta_data->>'username' (fallback ke email, yang kita nggak punya).
+  // Bikin username unik dari nomor HP biar nggak collide.
+  const generatedUsername = `usaha${phone.replace(/\D/g, "")}`;
+
   const { data: newUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
     phone,
     password,
     phone_confirm: true,
+    user_metadata: { username: generatedUsername },
   });
 
   if (createUserError || !newUser.user) {
     return { success: false, error: `Gagal buat akun: ${createUserError?.message ?? "unknown error"}` };
   }
 
-  // 4. Buat row profile (SKIP kalau sudah ada trigger otomatis saat auth user dibuat)
-  const { error: profileError } = await supabaseAdmin.from("profiles").insert({
-    id: newUser.user.id,
-    phone,
-  });
-  if (profileError && !profileError.message.includes("duplicate")) {
-    return { success: false, error: `Gagal buat profil: ${profileError.message}` };
+  // 4. Row profile SUDAH otomatis dibuat oleh trigger on_auth_user_created (id, username).
+  //    Tinggal update field tambahan yang relevan — JANGAN insert lagi, bakal bentrok primary key.
+  const { error: profileError } = await supabaseAdmin
+    .from("profiles")
+    .update({ phone, whatsapp: phone })
+    .eq("id", newUser.user.id);
+  if (profileError) {
+    return { success: false, error: `Gagal update profil: ${profileError.message}` };
   }
 
   // 5. Pindahkan kepemilikan listing
