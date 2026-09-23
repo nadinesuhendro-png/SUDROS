@@ -1,10 +1,11 @@
 // Taruh file ini di: lib/slug.ts
-// PERUBAHAN: cek collision juga ke tabel seller_subdomains (subdomain aktif milik seller lain),
-// bukan cuma listings.slug — karena subdomain final dipasang di seller_subdomains saat klaim.
+// FIX: `slugify` di-export lagi (sebelumnya sempat jadi internal-only dan bikin build gagal
+// karena app/page.tsx, app/lokasi/[slug]/page.tsx, app/kategori/[slug]/page.tsx sudah pakai
+// `import { slugify } from "@/lib/slug"` sebelumnya).
 
 import { createAdminClient } from "@/lib/supabase/admin"; // SESUAIKAN path createAdminClient() yang sudah dipakai
 
-function slugify(input: string): string {
+export function slugify(input: string): string {
   return input
     .toLowerCase()
     .normalize("NFKD")
