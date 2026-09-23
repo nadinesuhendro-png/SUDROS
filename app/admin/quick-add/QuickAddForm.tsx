@@ -13,7 +13,9 @@ export default function QuickAddForm({ categories }: { categories: Option[] }) {
   const [result, setResult] = useState<QuickAddResult | null>(null);
   const [copied, setCopied] = useState(false);
 
-  function handleSubmit(formData: FormData) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
     setResult(null);
     setCopied(false);
     startTransition(async () => {
@@ -30,7 +32,7 @@ export default function QuickAddForm({ categories }: { categories: Option[] }) {
 
   return (
     <div className="space-y-4">
-      <form action={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">Nama Usaha *</label>
           <input name="nama_usaha" required className="w-full border rounded px-3 py-2" placeholder="Jagung Bakar Mas Wisnu" />
