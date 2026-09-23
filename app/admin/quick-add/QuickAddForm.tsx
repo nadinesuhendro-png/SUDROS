@@ -1,4 +1,6 @@
 // Taruh file ini di: app/admin/quick-add/QuickAddForm.tsx
+// FIX: field "Alamat" (1 field) diganti jadi "Kota" + "Area/Detail Lokasi" (2 field teks bebas)
+// sesuai skema asli listings (location_city, location_area) — bukan dropdown kota.
 "use client";
 
 import { useState, useTransition } from "react";
@@ -6,13 +8,7 @@ import { createAssistedListing, type QuickAddResult } from "./actions";
 
 type Option = { id: string; name: string };
 
-export default function QuickAddForm({
-  categories,
-  kotaList,
-}: {
-  categories: Option[];
-  kotaList: Option[];
-}) {
+export default function QuickAddForm({ categories }: { categories: Option[] }) {
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<QuickAddResult | null>(null);
   const [copied, setCopied] = useState(false);
@@ -45,9 +41,15 @@ export default function QuickAddForm({
           <input name="whatsapp" required className="w-full border rounded px-3 py-2" placeholder="628xxxxxxxxxx" />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Alamat / Lokasi</label>
-          <input name="alamat" className="w-full border rounded px-3 py-2" placeholder="Indrapura (boleh area saja)" />
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium mb-1">Kota *</label>
+            <input name="location_city" required className="w-full border rounded px-3 py-2" placeholder="Medan" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Area/Detail Lokasi</label>
+            <input name="location_area" className="w-full border rounded px-3 py-2" placeholder="Indrapura" />
+          </div>
         </div>
 
         <div>
@@ -56,16 +58,6 @@ export default function QuickAddForm({
             <option value="">Pilih kategori</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Kota</label>
-          <select name="kota_id" className="w-full border rounded px-3 py-2">
-            <option value="">Pilih kota</option>
-            {kotaList.map((k) => (
-              <option key={k.id} value={k.id}>{k.name}</option>
             ))}
           </select>
         </div>
@@ -112,4 +104,3 @@ export default function QuickAddForm({
     </div>
   );
 }
-
