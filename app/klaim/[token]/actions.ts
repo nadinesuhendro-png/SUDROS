@@ -33,15 +33,21 @@ export async function claimListing(token: string, formData: FormData): Promise<C
     return { success: false, error: "Listing ini sudah pernah diklaim." };
   }
 
-  // 2. Konfirmasi nomor WA cocok
-  const normalize = (n: string) => n.replace(/\D/g, "");
-  if (normalize(confirmWhatsapp) !== normalize(listing.owner_whatsapp || "")) {
+  // 2. Konfirmasi nomor WA cocok (bandingkan digit polos dulu)
+  const digitsOnly = (n: string) => n.replace(/\D/g, "");
+  if (digitsOnly(confirmWhatsapp) !== digitsOnly(listing.owner_whatsapp || "")) {
     return { success: false, error: "Nomor WhatsApp tidak cocok dengan data listing." };
   }
 
-  // 3. Buat akun baru pakai nomor WA sebagai identifier
+  // 3. Buat akun baru pakai nomor WA sebagai identifier — Supabase wajib format E.164 (+62...)
   //    PENTING: Phone auth harus aktif di Supabase Dashboard → Authentication → Providers
-  const phone = normalize(listing.owner_whatsapp || "");
+  function toE164(n: string): string {
+    let digits = digitsOnly(n);
+    if (digits.startsWith("0")) digits = "62" + digits.slice(1); // 0812... -> 62812...
+    if (!digits.startsWith("62")) digits = "62" + digits; // jaga-jaga kalau nomor tanpa 0 di depan
+    return `+${digits}`;
+  }
+  const phone = toE164(listing.owner_whatsapp || "");
   const { data: newUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
     phone,
     password,
