@@ -1,9 +1,10 @@
 // Taruh file ini di: app/admin/quick-add/actions.ts
-// PERUBAHAN dari versi sebelumnya: pakai runAITask() generic (bukan generateListingDescription yang tidak ada),
-// sesuai signature asli di lib/ai/service.ts: runAITask<T>(task, input, prompt) -> { ok, data?, error? }
+// FIX: address & kota_id dihapus (tidak ada di skema), diganti location_city + location_area
+// sesuai kolom asli tabel listings. Kolom `status` masih pakai nilai tebakan "published" —
+// TUNGGU hasil query constraint sebelum anggap ini final, kemungkinan perlu diganti.
 "use server";
 
-import { createAdminClient } from "@/lib/supabase/admin"; // SESUAIKAN sesuai path createAdminClient() yang sudah ada
+import { createAdminClient } from "@/lib/supabase/admin";
 import { generateUniqueSlug } from "@/lib/slug";
 import { runAITask } from "@/lib/ai/service";
 import { revalidatePath } from "next/cache";
@@ -14,23 +15,27 @@ export type QuickAddResult =
 
 type DescriptionAIOutput = { description: string };
 
+// Konstraint listings_status_check hanya izinkan: active, pending, rejected, suspended, sold, inactive.
+// Dipilih "active" karena listing quick-add dibuat & sudah dicek manual oleh admin sendiri,
+// jadi tidak perlu masuk antrian moderasi seperti listing submission user biasa (yang mungkin start dari "pending").
+const DEFAULT_STATUS = "active";
+
 export async function createAssistedListing(formData: FormData): Promise<QuickAddResult> {
   const namaUsaha = String(formData.get("nama_usaha") || "").trim();
   const whatsapp = String(formData.get("whatsapp") || "").trim();
-  const alamat = String(formData.get("alamat") || "").trim();
+  const locationCity = String(formData.get("location_city") || "").trim();
+  const locationArea = String(formData.get("location_area") || "").trim();
   const categoryId = String(formData.get("category_id") || "").trim();
-  const kotaId = String(formData.get("kota_id") || "").trim(); // SESUAIKAN kalau kota disimpan sebagai text bukan FK
-
   const photos = formData.getAll("photos") as File[];
 
-  if (!namaUsaha || !whatsapp || !categoryId) {
-    return { success: false, error: "Nama usaha, WA, dan kategori wajib diisi." };
+  if (!namaUsaha || !whatsapp || !categoryId || !locationCity) {
+    return { success: false, error: "Nama usaha, WA, kota, dan kategori wajib diisi." };
   }
 
   const supabaseAdmin = createAdminClient();
 
   try {
-    // 0. Ambil nama kategori dulu — dibutuhkan buat prompt AI yang masuk akal (bukan cuma UUID)
+    // 0. Ambil nama kategori buat prompt AI
     const { data: category, error: categoryError } = await supabaseAdmin
       .from("categories")
       .select("name")
@@ -54,16 +59,15 @@ export async function createAssistedListing(formData: FormData): Promise<QuickAd
       imageUrls.push(publicUrl.publicUrl);
     }
 
-    // 2. Generate deskripsi pakai runAITask() — task diberi nama unik biar gampang dipantau di tabel ai_usage
-    //    CATATAN: runAITask butuh admin (yang lagi isi form quick-add ini) dalam kondisi login,
-    //    karena dia cek session via createClient() dan pakai user.id itu buat rate limit + log ai_usage.
+    // 2. Generate deskripsi pakai runAITask()
+    const lokasiText = [locationArea, locationCity].filter(Boolean).join(", ");
     const prompt = `Buatkan deskripsi listing singkat (2-3 kalimat, bahasa Indonesia sehari-hari, menarik untuk calon pembeli lokal) untuk usaha bernama "${namaUsaha}" kategori "${categoryName}"${
-      alamat ? ` yang berlokasi di ${alamat}` : ""
+      lokasiText ? ` yang berlokasi di ${lokasiText}` : ""
     }. Balas HANYA dalam format JSON tanpa teks lain: {"description": "..."}`;
 
     const aiResult = await runAITask<DescriptionAIOutput>(
       "quick_add_listing_description",
-      { namaUsaha, categoryName, alamat },
+      { namaUsaha, categoryName, lokasiText },
       prompt
     );
 
@@ -82,13 +86,13 @@ export async function createAssistedListing(formData: FormData): Promise<QuickAd
         title: namaUsaha,
         description: deskripsi,
         category_id: categoryId,
-        kota_id: kotaId || null, // SESUAIKAN kalau field kota beda nama
-        address: alamat || null,
+        location_city: locationCity,
+        location_area: locationArea || null,
         owner_id: null,
         owner_whatsapp: whatsapp,
         claim_status: "unclaimed",
         slug,
-        status: "published", // SESUAIKAN sesuai nilai status listing yang berlaku (mis. "active")
+        status: DEFAULT_STATUS,
       })
       .select("id, claim_token")
       .single();
