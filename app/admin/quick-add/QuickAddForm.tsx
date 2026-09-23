@@ -65,6 +65,11 @@ export default function QuickAddForm({ categories }: { categories: Option[] }) {
         </div>
 
         <div>
+          <label className="block text-sm font-medium mb-1">Harga (Rp, opsional)</label>
+          <input name="price" type="number" min="0" className="w-full border rounded px-3 py-2" placeholder="Kosongkan kalau nego/hubungi WA" />
+        </div>
+
+        <div>
           <label className="block text-sm font-medium mb-1">Foto Produk</label>
           <input type="file" name="photos" accept="image/*" multiple className="w-full" />
         </div>
