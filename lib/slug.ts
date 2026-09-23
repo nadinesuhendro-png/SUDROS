@@ -1,13 +1,14 @@
 // Taruh file ini di: lib/slug.ts
-// Dipakai server-side saja (butuh service role client)
+// PERUBAHAN: cek collision juga ke tabel seller_subdomains (subdomain aktif milik seller lain),
+// bukan cuma listings.slug — karena subdomain final dipasang di seller_subdomains saat klaim.
 
-import { createAdminClient } from "@/lib/supabase/admin"; // SESUAIKAN path import createAdminClient() sesuai yang sudah dipakai di admin/listings/actions.ts
+import { createAdminClient } from "@/lib/supabase/admin"; // SESUAIKAN path createAdminClient() yang sudah dipakai
 
 function slugify(input: string): string {
   return input
     .toLowerCase()
     .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "") // hapus diakritik
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9\s-]/g, "")
     .trim()
     .replace(/\s+/g, "-")
@@ -16,8 +17,10 @@ function slugify(input: string): string {
 }
 
 /**
- * Generate slug unik dari nama usaha. Kalau sudah dipakai, tambahkan angka di belakang.
- * Contoh: "jagung-bakar-mas-wisnu", "jagung-bakar-mas-wisnu-2", dst.
+ * Generate slug unik dari nama usaha — dicek terhadap DUA sumber:
+ * 1. listings.slug (slug titipan, dipakai buat listing lain yang belum diklaim)
+ * 2. seller_subdomains.subdomain (subdomain yang sudah resmi aktif milik seller lain)
+ * Slug ini nanti dipakai sebagai calon subdomain begitu listing diklaim.
  */
 export async function generateUniqueSlug(namaUsaha: string): Promise<string> {
   const base = slugify(namaUsaha) || "usaha";
@@ -27,18 +30,16 @@ export async function generateUniqueSlug(namaUsaha: string): Promise<string> {
   let suffix = 1;
 
   while (true) {
-    const { data, error } = await supabaseAdmin
-      .from("listings")
-      .select("id")
-      .eq("slug", candidate)
-      .maybeSingle();
+    const [{ data: listingHit, error: listingError }, { data: subdomainHit, error: subdomainError }] =
+      await Promise.all([
+        supabaseAdmin.from("listings").select("id").eq("slug", candidate).maybeSingle(),
+        supabaseAdmin.from("seller_subdomains").select("id").eq("subdomain", candidate).maybeSingle(),
+      ]);
 
-    if (error) {
-      // kalau error koneksi dll, jangan biarkan slug collision lolos diam-diam
-      throw new Error(`Gagal cek slug: ${error.message}`);
-    }
+    if (listingError) throw new Error(`Gagal cek slug listing: ${listingError.message}`);
+    if (subdomainError) throw new Error(`Gagal cek slug subdomain: ${subdomainError.message}`);
 
-    if (!data) {
+    if (!listingHit && !subdomainHit) {
       return candidate;
     }
 
