@@ -1,3 +1,5 @@
+// Taruh file ini di: app/admin/AdminNav.tsx (timpa total)
+// PERUBAHAN: tambah satu item "Quick Add" di navItems, di antara Listings dan Reports
 "use client";
 
 import Link from "next/link";
@@ -8,6 +10,7 @@ const navItems: { href: string; label: string; countKey?: keyof AdminNavCounts }
   { href: "/admin", label: "Overview" },
   { href: "/admin/users", label: "Users", countKey: "users" },
   { href: "/admin/listings", label: "Listings", countKey: "listings" },
+  { href: "/admin/quick-add", label: "Quick Add" },
   { href: "/admin/reports", label: "Reports", countKey: "reports" },
   { href: "/admin/packages", label: "Packages" },
   { href: "/admin/payments", label: "Payments", countKey: "payments" },
