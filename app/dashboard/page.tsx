@@ -34,7 +34,7 @@ import {
   ProgressRing,
 } from "@/components/dashboard/interactive";
 
-type Profile = { username: string; role: string };
+type Profile = { username: string; role: string; full_name: string | null };
 type RecentListing = { id: string; title: string; status: string; updated_at: string };
 
 function formatDate(dateStr: string) {
@@ -127,7 +127,7 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username, role")
+    .select("username, role, full_name")
     .eq("id", user!.id)
     .single<Profile>();
 
@@ -207,7 +207,7 @@ export default async function DashboardPage() {
     },
   ];
 
-  const username = profile?.username || user?.email?.split("@")[0] || "Pengguna";
+  const username = profile?.full_name || profile?.username || user?.email?.split("@")[0] || "Pengguna";
 
   return (
     <main className="min-h-screen bg-[#05070f] text-white relative overflow-x-hidden">
