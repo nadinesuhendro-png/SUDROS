@@ -26,10 +26,10 @@ export async function claimListing(token: string, formData: FormData): Promise<C
 
   const supabaseAdmin = createAdminClient();
 
-  // 1. Ambil listing berdasarkan claim_token
+  // 1. Ambil listing berdasarkan claim_token (termasuk title buat nama tampilan profil)
   const { data: listing, error: findError } = await supabaseAdmin
     .from("listings")
-    .select("id, owner_whatsapp, claim_status, slug")
+    .select("id, title, owner_whatsapp, claim_status, slug")
     .eq("claim_token", token)
     .maybeSingle();
 
@@ -65,9 +65,10 @@ export async function claimListing(token: string, formData: FormData): Promise<C
   // 4. Row profile otomatis dibuat oleh trigger on_auth_user_created.
   //    PENTING: phone disimpan format KANONIK (dipakai buat lookup login),
   //    whatsapp disimpan format asli/tampilan (dipakai buat ditampilkan di UI).
+  //    full_name diisi dari nama usaha (listing.title) biar dashboard nampilin nama toko, bukan nomor HP.
   const { error: profileError } = await supabaseAdmin
     .from("profiles")
-    .update({ phone: ownerDigits, whatsapp: listing.owner_whatsapp })
+    .update({ phone: ownerDigits, whatsapp: listing.owner_whatsapp, full_name: listing.title })
     .eq("id", newUser.user.id);
   if (profileError) {
     return { success: false, error: `Gagal update profil: ${profileError.message}` };
