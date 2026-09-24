@@ -1,26 +1,19 @@
 // Taruh file ini di: app/klaim/[token]/actions.ts
-// PERUBAHAN: Supabase phone auth butuh SMS provider (Twilio dkk) yang aktif, kalau nggak ada
-// login/signup pakai phone DITOLAK ("Phone logins are disabled") walau cuma buat password login.
-// Solusi: bikin akun pakai EMAIL SINTETIS dari nomor HP (mis. 6281362381411@wa.sudros.id),
-// nomor HP asli tetap disimpan normal di profiles.phone/whatsapp buat ditampilin/dipakai di UI.
+// PERUBAHAN dari versi sebelumnya: profiles.phone sekarang disimpan dalam format KANONIK
+// (digit saja, diawali 62, tanpa +) — bukan format tampilan asli — supaya login lewat nomor HP
+// bisa LOOKUP persis ke baris ini (bukan nebak/reconstruct email dari nomor lagi).
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type ClaimResult = { success: true; subdomain: string | null } | { success: false; error: string };
 
-// Normalisasi nomor ke bentuk kanonik: digit saja, diawali kode negara 62 (tanpa +)
-// PENTING: fungsi ini juga dipakai di app/(auth)/actions.ts saat login — harus identik,
-// biar nomor yang sama selalu menghasilkan email sintetis yang sama.
+// HARUS identik dengan canonicalPhoneDigits di app/(auth)/actions.ts
 function canonicalPhoneDigits(value: string): string {
   let digits = value.replace(/\D/g, "");
   if (digits.startsWith("0")) digits = "62" + digits.slice(1);
   if (!digits.startsWith("62")) digits = "62" + digits;
   return digits;
-}
-
-function phoneToSyntheticEmail(phoneDigits: string): string {
-  return `${phoneDigits}@wa.sudros.id`;
 }
 
 export async function claimListing(token: string, formData: FormData): Promise<ClaimResult> {
@@ -55,9 +48,10 @@ export async function claimListing(token: string, formData: FormData): Promise<C
     return { success: false, error: "Nomor WhatsApp tidak cocok dengan data listing." };
   }
 
-  // 3. Buat akun baru pakai email sintetis dari nomor HP (email_confirm: true — tidak perlu verifikasi,
-  //    karena kepemilikan nomor sudah diverifikasi manual lewat langkah 2 di atas)
-  const syntheticEmail = phoneToSyntheticEmail(ownerDigits);
+  // 3. Buat akun baru pakai email sintetis dari nomor HP (email_confirm: true — kepemilikan nomor
+  //    sudah diverifikasi manual di langkah 2). Email ini boleh format apapun sebenarnya —
+  //    yang penting login nanti LOOKUP dari profiles.phone, bukan reconstruct dari nomor.
+  const syntheticEmail = `${ownerDigits}@wa.sudros.id`;
   const { data: newUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
     email: syntheticEmail,
     password,
@@ -68,12 +62,12 @@ export async function claimListing(token: string, formData: FormData): Promise<C
     return { success: false, error: `Gagal buat akun: ${createUserError?.message ?? "unknown error"}` };
   }
 
-  // 4. Row profile otomatis dibuat oleh trigger on_auth_user_created (username diambil dari
-  //    split_part(email, '@', 1) = nomor HP-nya sendiri, jadi otomatis unik). Update field tambahan.
-  const displayPhone = listing.owner_whatsapp || "";
+  // 4. Row profile otomatis dibuat oleh trigger on_auth_user_created.
+  //    PENTING: phone disimpan format KANONIK (dipakai buat lookup login),
+  //    whatsapp disimpan format asli/tampilan (dipakai buat ditampilkan di UI).
   const { error: profileError } = await supabaseAdmin
     .from("profiles")
-    .update({ phone: displayPhone, whatsapp: displayPhone })
+    .update({ phone: ownerDigits, whatsapp: listing.owner_whatsapp })
     .eq("id", newUser.user.id);
   if (profileError) {
     return { success: false, error: `Gagal update profil: ${profileError.message}` };
@@ -93,12 +87,19 @@ export async function claimListing(token: string, formData: FormData): Promise<C
   }
 
   // 6. Pasang subdomain resmi (kalau ada slug titipan)
+  //    PENTING: policy RLS public_read_active_subdomain butuh status='active' DAN expires_at > now() —
+  //    kalau expires_at kosong (NULL), row nggak lolos SELECT publik walau status aktif.
+  //    Anchor seller dianggap unlimited, jadi expires_at di-set jauh ke depan (10 tahun).
   let assignedSubdomain: string | null = null;
   if (listing.slug) {
+    const farFutureExpiry = new Date();
+    farFutureExpiry.setFullYear(farFutureExpiry.getFullYear() + 10);
+
     const { error: subdomainError } = await supabaseAdmin.from("seller_subdomains").insert({
       owner_id: newUser.user.id,
       subdomain: listing.slug,
       status: "active",
+      expires_at: farFutureExpiry.toISOString(),
     });
 
     if (subdomainError) {
