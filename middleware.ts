@@ -1,5 +1,7 @@
-// AKSI: GANTI SELURUH ISI FILE (tambah proteksi role admin + rewrite subdomain seller)
-// PATH: middleware.ts
+// Taruh file ini di: middleware.ts (root project, timpa total)
+// PERUBAHAN: fix bug di extractSubdomain() — sebelumnya `+ 1` bikin subdomain kepotong
+// 1 karakter di ujung (mis. "toko-tes-3" jadi "toko-tes-"), gara-gara itu subdomain
+// nggak pernah match ke row manapun di seller_subdomains dan selalu redirect ke landing page.
 
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
@@ -16,7 +18,7 @@ function extractSubdomain(host: string): string | null {
   const hostname = host.split(":")[0].toLowerCase();
   if (hostname === ROOT_DOMAIN || hostname === `www.${ROOT_DOMAIN}`) return null;
   if (!hostname.endsWith(`.${ROOT_DOMAIN}`)) return null;
-  const sub = hostname.slice(0, -(`.${ROOT_DOMAIN}`.length + 1));
+  const sub = hostname.slice(0, -(`.${ROOT_DOMAIN}`.length)); // FIX: hapus " + 1" yang salah
   if (!sub || sub === "www") return null;
   return sub;
 }
