@@ -13,6 +13,59 @@ export type QuickAddResult =
   | { success: true; listingId: string; slug: string; claimLink: string }
   | { success: false; error: string };
 
+export type RecentListing = {
+  id: string;
+  title: string;
+  owner_whatsapp: string | null;
+  claim_status: string;
+  slug: string | null;
+  owner_id: string | null;
+};
+
+export async function getRecentQuickAddListings(): Promise<RecentListing[]> {
+  const supabaseAdmin = createAdminClient();
+  const { data } = await supabaseAdmin
+    .from("listings")
+    .select("id, title, owner_whatsapp, claim_status, slug, owner_id")
+    .not("owner_whatsapp", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  return data ?? [];
+}
+
+export type DeleteResult = { success: true } | { success: false; error: string };
+
+export async function deleteAssistedListing(listingId: string): Promise<DeleteResult> {
+  const supabaseAdmin = createAdminClient();
+
+  const { data: listing, error: findError } = await supabaseAdmin
+    .from("listings")
+    .select("slug, owner_id")
+    .eq("id", listingId)
+    .maybeSingle();
+
+  if (findError) return { success: false, error: `Gagal cari listing: ${findError.message}` };
+  if (!listing) return { success: false, error: "Listing tidak ditemukan." };
+
+  // 1. Hapus row subdomain kalau ada
+  if (listing.slug) {
+    await supabaseAdmin.from("seller_subdomains").delete().eq("subdomain", listing.slug);
+  }
+
+  // 2. Hapus listing itu sendiri
+  const { error: deleteListingError } = await supabaseAdmin.from("listings").delete().eq("id", listingId);
+  if (deleteListingError) return { success: false, error: `Gagal hapus listing: ${deleteListingError.message}` };
+
+  // 3. Kalau udah pernah diklaim, hapus juga akunnya (profile dulu baru auth user, biar nomor WA bisa dipakai ulang)
+  if (listing.owner_id) {
+    await supabaseAdmin.from("profiles").delete().eq("id", listing.owner_id);
+    await supabaseAdmin.auth.admin.deleteUser(listing.owner_id);
+  }
+
+  revalidatePath("/admin/quick-add");
+  return { success: true };
+}
+
 type DescriptionAIOutput = { description: string };
 
 // Konstraint listings_status_check hanya izinkan: active, pending, rejected, suspended, sold, inactive.
