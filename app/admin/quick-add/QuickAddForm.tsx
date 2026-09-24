@@ -4,14 +4,28 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { createAssistedListing, type QuickAddResult } from "./actions";
+import { createAssistedListing, deleteAssistedListing, type QuickAddResult, type RecentListing } from "./actions";
 
 type Option = { id: string; name: string };
 
-export default function QuickAddForm({ categories }: { categories: Option[] }) {
+export default function QuickAddForm({ categories, recentListings }: { categories: Option[]; recentListings: RecentListing[] }) {
   const [isPending, startTransition] = useTransition();
+  const [isDeleting, startDeleteTransition] = useTransition();
   const [result, setResult] = useState<QuickAddResult | null>(null);
   const [copied, setCopied] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  function handleDelete(id: string) {
+    if (!confirm("Hapus listing ini beserta akun & subdomain yang terkait? Tidak bisa dibatalkan.")) return;
+    setDeletingId(id);
+    setDeleteError(null);
+    startDeleteTransition(async () => {
+      const res = await deleteAssistedListing(id);
+      if (!res.success) setDeleteError(res.error);
+      setDeletingId(null);
+    });
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -106,6 +120,34 @@ export default function QuickAddForm({ categories }: { categories: Option[] }) {
             </button>
           </div>
           <p className="text-xs text-gray-500">Kirim link klaim ini ke WA pemilik usaha.</p>
+        </div>
+      )}
+
+      {recentListings.length > 0 && (
+        <div className="pt-6 border-t">
+          <h2 className="text-sm font-semibold mb-2">Listing Terakhir</h2>
+          {deleteError && <p className="text-sm text-red-600 mb-2">{deleteError}</p>}
+          <div className="space-y-2">
+            {recentListings.map((l) => (
+              <div key={l.id} className="flex items-center justify-between border rounded px-3 py-2 text-sm">
+                <div className="min-w-0">
+                  <p className="font-medium truncate">{l.title}</p>
+                  <p className="text-xs text-gray-500">
+                    {l.owner_whatsapp} — {l.claim_status}
+                    {l.slug ? ` — ${l.slug}.sudros.id` : ""}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(l.id)}
+                  disabled={isDeleting && deletingId === l.id}
+                  className="text-xs bg-red-600 text-white px-3 py-1.5 rounded disabled:opacity-50 shrink-0 ml-2"
+                >
+                  {isDeleting && deletingId === l.id ? "..." : "Hapus"}
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
