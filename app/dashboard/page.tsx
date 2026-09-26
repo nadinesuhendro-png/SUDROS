@@ -16,7 +16,6 @@ import {
   Gift,
   Zap,
   Clock,
-  TrendingUp,
   Shield,
   Sparkles,
   ChevronRight,
@@ -30,7 +29,6 @@ import { getUserEntitlements } from "@/lib/entitlements/service";
 import { ListingCreatedTracker } from "@/components/analytics/listing-created-tracker";
 import {
   AnimatedCounter,
-  EngagementDonut,
   ProgressRing,
 } from "@/components/dashboard/interactive";
 
@@ -159,14 +157,10 @@ export default async function DashboardPage() {
     .limit(4)
     .returns<RecentListing[]>();
 
-  const conversionRate =
-    totalViews > 0 ? (totalWhatsapp / totalViews) * 100 : 0;
-  const totalEngagement = totalViews + totalWhatsapp + totalFavorites;
-
   const statCards = [
     {
       icon: CheckCircle2,
-      label: "Listing Aktif",
+      label: "Iklan Aktif",
       value: listingQuota.used,
       suffix: isUnlimited ? "" : ` / ${listingQuota.limit}`,
       accent: "text-sky-400",
@@ -279,7 +273,7 @@ export default async function DashboardPage() {
             {getGreeting()}, {username} 👋
           </h1>
           <p className="text-slate-400 text-sm mt-2 max-w-xl">
-            Berikut ringkasan performa tokomu. Kelola listing, pantau interaksi, dan tingkatkan penjualan.
+            Berikut ringkasan performa tokomu. Kelola iklan, pantau interaksi, dan tingkatkan penjualan.
           </p>
         </header>
 
@@ -315,8 +309,8 @@ export default async function DashboardPage() {
                     {entitlements.package?.name || "Paket Gratis"}
                   </h3>
                   <p className="text-blue-100/80 text-sm mb-5">
-                    {listingQuota.used} listing aktif
-                    {isUnlimited && " • Listing tak terbatas"}
+                    {listingQuota.used} iklan aktif
+                    {isUnlimited && " • Iklan tak terbatas"}
                     {!entitlements.isFreeTier &&
                       !isUnlimited &&
                       entitlements.expiresAt &&
@@ -404,7 +398,7 @@ export default async function DashboardPage() {
               </div>
             </section>
 
-            {/* ---- Tombol Buat Listing ---- */}
+            {/* ---- Tombol Buat Iklan ---- */}
             <Link
               href="/dashboard/listings/new"
               className="group relative flex items-center justify-center gap-3 w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 text-white font-bold py-4 rounded-2xl shadow-xl shadow-emerald-900/20 hover:shadow-emerald-700/30 transition-all duration-300 hover:scale-[1.005] active:scale-[0.995] overflow-hidden"
@@ -414,54 +408,12 @@ export default async function DashboardPage() {
                 size={22}
                 className="group-hover:rotate-90 transition-transform duration-300"
               />
-              Buat Listing Baru
+              Buat Iklan Baru
               <Zap
                 size={18}
                 className="ml-1 group-hover:scale-125 transition-transform"
               />
             </Link>
-
-            {/* ---- Diagram Interaktif: Engagement ---- */}
-            <section className="rounded-3xl bg-white/[0.025] border border-white/[0.06] p-5 md:p-6 backdrop-blur-xl">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-lg font-semibold flex items-center gap-2 tracking-tight">
-                    <TrendingUp size={18} className="text-sky-400" />
-                    Ringkasan Interaksi
-                  </h2>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Arahkan kursor ke diagram untuk detail
-                  </p>
-                </div>
-                <div className="hidden sm:flex items-center gap-3">
-                  <div className="text-right">
-                    <p className="text-[10px] uppercase tracking-wider text-slate-500">
-                      Konversi
-                    </p>
-                    <p className="text-sm font-bold text-emerald-400 tabular-nums">
-                      {conversionRate.toFixed(1)}%
-                    </p>
-                  </div>
-                  <div className="w-px h-8 bg-white/10" />
-                  <div className="text-right">
-                    <p className="text-[10px] uppercase tracking-wider text-slate-500">
-                      Total
-                    </p>
-                    <p className="text-sm font-bold text-white tabular-nums">
-                      {totalEngagement.toLocaleString("id-ID")}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <EngagementDonut
-                segments={[
-                  { label: "Dilihat", value: totalViews, color: "#38bdf8" },
-                  { label: "Klik WhatsApp", value: totalWhatsapp, color: "#34d399" },
-                  { label: "Disukai", value: totalFavorites, color: "#fb7185" },
-                ]}
-              />
-            </section>
 
             {/* ---- Aktivitas Terbaru ---- */}
             {recentListings && recentListings.length > 0 && (
@@ -534,8 +486,8 @@ export default async function DashboardPage() {
                   {
                     href: "/dashboard/listings",
                     icon: ClipboardList,
-                    label: "Listing Saya",
-                    desc: "Kelola semua produk",
+                    label: "Iklan Saya",
+                    desc: "Kelola semua iklan",
                     grad: "from-blue-500 to-indigo-500",
                   },
                   {
@@ -617,4 +569,4 @@ export default async function DashboardPage() {
       </div>
     </main>
   );
-}
+          }
