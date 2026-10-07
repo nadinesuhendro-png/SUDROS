@@ -1,4 +1,4 @@
-// AKSI: BUAT FILE BARU
+// AKSI: GANTI SELURUH ISI FILE
 // PATH: app/admin/landing-pages/page.tsx
 import type { CSSProperties } from "react";
 import Link from "next/link";
@@ -92,10 +92,11 @@ export default async function AdminLandingPages() {
               </form>
             ) : null}
             <Link href={"/admin/landing-pages/edit?id=" + r.id} style={btnGhost}>Edit</Link>
+            <Link href={"/admin/landing-pages/media?id=" + r.id} style={btnGhost}>Logo dan Produk</Link>
             <a href={"/sites/" + r.subdomain} target="_blank" rel="noreferrer" style={btnGhost}>Pratinjau</a>
           </div>
         </div>
       ))}
     </div>
   );
-}
+            }
