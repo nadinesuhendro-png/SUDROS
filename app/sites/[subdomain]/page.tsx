@@ -98,8 +98,11 @@ const contactDesc: CSSProperties = { fontSize: 15, opacity: 0.9, margin: "0 0 18
 const footer: CSSProperties = { textAlign: "center", padding: "20px 16px 28px 16px", fontSize: 13, color: "#64748b" };
 const floatBtn: CSSProperties = { position: "fixed", right: 16, bottom: 16, zIndex: 50, display: "flex", alignItems: "center", gap: 8, background: "#25d366", color: "#ffffff", padding: "12px 18px", borderRadius: 999, fontWeight: 700, fontSize: 15, textDecoration: "none", animation: "lpPulse 2.4s ease-in-out infinite" };
 
-const logoBox: CSSProperties = { width: 84, height: 84, borderRadius: 22, background: "#ffffff", padding: 6, boxSizing: "border-box", marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", boxShadow: "0 6px 18px rgba(0,0,0,0.2)" };
+const brandRow: CSSProperties = { display: "flex", alignItems: "center", flexWrap: "wrap", gap: 14, marginBottom: 20 };
+const logoBox: CSSProperties = { width: 84, height: 84, borderRadius: 22, background: "#ffffff", padding: 6, boxSizing: "border-box", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", boxShadow: "0 6px 18px rgba(0,0,0,0.2)" };
 const logoImg: CSSProperties = { width: "100%", height: "100%", objectFit: "contain", display: "block" };
+const sudrosPill: CSSProperties = { display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.96)", padding: "8px 16px 8px 8px", borderRadius: 999, textDecoration: "none", boxShadow: "0 6px 18px rgba(0,0,0,0.2)" };
+const sudrosText: CSSProperties = { fontSize: 15, fontWeight: 800, letterSpacing: 1.2, color: "#0b2a52" };
 
 const grid: CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 12 };
 const prodCard: CSSProperties = { background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 14, overflow: "hidden", display: "flex", flexDirection: "column" };
@@ -108,6 +111,28 @@ const prodNoImg: CSSProperties = { width: "100%", aspectRatio: "1 / 1", display:
 const prodBody: CSSProperties = { padding: 12, display: "flex", flexDirection: "column", gap: 6, flex: 1 };
 const prodName: CSSProperties = { fontSize: 15, fontWeight: 700, lineHeight: 1.3, margin: 0 };
 const prodDesc: CSSProperties = { fontSize: 13, color: "#64748b", lineHeight: 1.4, margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" };
+
+function SudrosMark() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
+      <defs>
+        <linearGradient id="sdg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#1d6fb8" />
+          <stop offset="1" stopColor="#2aa8e0" />
+        </linearGradient>
+      </defs>
+      <rect width="32" height="32" rx="9" fill="url(#sdg)" />
+      <path
+        d="M21.5 11.2 C20.3 9.9 18.4 9.2 16.2 9.2 C13.2 9.2 11.2 10.7 11.2 12.9 C11.2 15.1 13 16 16.2 16.7 C19.6 17.5 21.4 18.4 21.4 20.7 C21.4 23 19.2 24.5 16 24.5 C13.7 24.5 11.7 23.7 10.4 22.2"
+        fill="none"
+        stroke="#ffffff"
+        strokeWidth="2.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 export default async function SitePage({ params }: Props) {
   const { subdomain } = await params;
@@ -131,10 +156,11 @@ export default async function SitePage({ params }: Props) {
   const heroOuter: CSSProperties = { position: "relative", overflow: "hidden", padding: "64px 20px 96px 20px", background: gradient, color: fg };
   const badge: CSSProperties = {
     width: 64, height: 64, borderRadius: 18, display: "flex", alignItems: "center", justifyContent: "center",
-    fontSize: 30, fontWeight: 800, marginBottom: 20,
+    fontSize: 30, fontWeight: 800,
     background: light ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.2)",
     border: light ? "1px solid rgba(0,0,0,0.12)" : "1px solid rgba(255,255,255,0.3)",
   };
+  const divider: CSSProperties = { width: 2, height: 40, borderRadius: 2, background: fg, opacity: 0.35 };
   const primaryBtn: CSSProperties = {
     display: "inline-block", background: light ? "#0f172a" : "#ffffff", color: light ? "#ffffff" : shade(color, -40),
     padding: "14px 26px", borderRadius: 999, fontWeight: 700, fontSize: 16, textDecoration: "none", boxShadow: "0 6px 18px rgba(0,0,0,0.2)",
@@ -155,13 +181,20 @@ export default async function SitePage({ params }: Props) {
         <div style={circleA} />
         <div style={circleB} />
         <div style={heroInner}>
-          {page.logo_url ? (
-            <div style={logoBox}>
-              <img src={page.logo_url} alt={page.title} style={logoImg} />
-            </div>
-          ) : (
-            <div style={badge}>{initial}</div>
-          )}
+          <div style={brandRow}>
+            {page.logo_url ? (
+              <div style={logoBox}>
+                <img src={page.logo_url} alt={page.title} style={logoImg} />
+              </div>
+            ) : (
+              <div style={badge}>{initial}</div>
+            )}
+            <div style={divider} />
+            <a href="https://sudros.id" style={sudrosPill} aria-label="SUDROS">
+              <SudrosMark />
+              <span style={sudrosText}>SUDROS</span>
+            </a>
+          </div>
           <h1 style={heroTitle}>{page.title}</h1>
           {page.tagline ? <p style={heroTag}>{page.tagline}</p> : null}
           <div style={ctaRow}>
@@ -272,4 +305,4 @@ export default async function SitePage({ params }: Props) {
       ) : null}
     </div>
   );
-                                 }
+                                    }
