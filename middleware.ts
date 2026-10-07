@@ -1,7 +1,7 @@
-// Taruh file ini di: middleware.ts (root project, timpa total)
-// PERUBAHAN: fix bug di extractSubdomain() — sebelumnya `+ 1` bikin subdomain kepotong
-// 1 karakter di ujung (mis. "toko-tes-3" jadi "toko-tes-"), gara-gara itu subdomain
-// nggak pernah match ke row manapun di seller_subdomains dan selalu redirect ke landing page.
+// AKSI: GANTI SELURUH ISI FILE
+// PATH: middleware.ts
+// PERUBAHAN: tambah rewrite subdomain landing page custom (tabel landing_pages, status approved)
+// ke route /sites/[subdomain]. Urutan: seller_subdomains dulu, lalu landing_pages, lalu redirect ke domain utama.
 
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
@@ -18,7 +18,7 @@ function extractSubdomain(host: string): string | null {
   const hostname = host.split(":")[0].toLowerCase();
   if (hostname === ROOT_DOMAIN || hostname === `www.${ROOT_DOMAIN}`) return null;
   if (!hostname.endsWith(`.${ROOT_DOMAIN}`)) return null;
-  const sub = hostname.slice(0, -(`.${ROOT_DOMAIN}`.length)); // FIX: hapus " + 1" yang salah
+  const sub = hostname.slice(0, -(`.${ROOT_DOMAIN}`.length));
   if (!sub || sub === "www") return null;
   return sub;
 }
@@ -51,11 +51,12 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // ---- Rewrite subdomain toko seller (namatoko.sudros.id) ----
+  // ---- Rewrite subdomain (namatoko.sudros.id) ----
   const host = request.headers.get("host") || "";
   const subdomain = extractSubdomain(host);
 
   if (subdomain) {
+    // 1) Subdomain toko seller
     const { data: sub } = await supabase
       .from("seller_subdomains")
       .select("owner_id")
@@ -66,6 +67,20 @@ export async function middleware(request: NextRequest) {
     if (sub) {
       const url = request.nextUrl.clone();
       url.pathname = `/sellers/${sub.owner_id}`;
+      return NextResponse.rewrite(url);
+    }
+
+    // 2) Landing page custom (hanya yang sudah disetujui admin)
+    const { data: lp } = await supabase
+      .from("landing_pages")
+      .select("subdomain")
+      .eq("subdomain", subdomain)
+      .eq("status", "approved")
+      .maybeSingle<{ subdomain: string }>();
+
+    if (lp) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/sites/${lp.subdomain}`;
       return NextResponse.rewrite(url);
     }
 
