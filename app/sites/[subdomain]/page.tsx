@@ -2,6 +2,7 @@
 // PATH: app/sites/[subdomain]/page.tsx
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getAdminDb, type LandingPage } from "@/lib/landing/helpers";
 import { formatRupiah, type LandingProduct } from "@/lib/landing/media";
@@ -101,8 +102,8 @@ const floatBtn: CSSProperties = { position: "fixed", right: 16, bottom: 16, zInd
 const brandRow: CSSProperties = { display: "flex", alignItems: "center", flexWrap: "wrap", gap: 14, marginBottom: 20 };
 const logoBox: CSSProperties = { width: 84, height: 84, borderRadius: 22, background: "#ffffff", padding: 6, boxSizing: "border-box", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", boxShadow: "0 6px 18px rgba(0,0,0,0.2)" };
 const logoImg: CSSProperties = { width: "100%", height: "100%", objectFit: "contain", display: "block" };
-const sudrosPill: CSSProperties = { display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.96)", padding: "8px 16px 8px 8px", borderRadius: 999, textDecoration: "none", boxShadow: "0 6px 18px rgba(0,0,0,0.2)" };
-const sudrosText: CSSProperties = { fontSize: 15, fontWeight: 800, letterSpacing: 1.2, color: "#0b2a52" };
+const sudrosBox: CSSProperties = { width: 128, height: 84, borderRadius: 22, background: "#ffffff", padding: 8, boxSizing: "border-box", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", boxShadow: "0 6px 18px rgba(0,0,0,0.2)", textDecoration: "none" };
+const sudrosImg: CSSProperties = { width: "100%", height: "100%", objectFit: "contain", display: "block" };
 
 const grid: CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 12 };
 const prodCard: CSSProperties = { background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 14, overflow: "hidden", display: "flex", flexDirection: "column" };
@@ -111,28 +112,6 @@ const prodNoImg: CSSProperties = { width: "100%", aspectRatio: "1 / 1", display:
 const prodBody: CSSProperties = { padding: 12, display: "flex", flexDirection: "column", gap: 6, flex: 1 };
 const prodName: CSSProperties = { fontSize: 15, fontWeight: 700, lineHeight: 1.3, margin: 0 };
 const prodDesc: CSSProperties = { fontSize: 13, color: "#64748b", lineHeight: 1.4, margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" };
-
-function SudrosMark() {
-  return (
-    <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
-      <defs>
-        <linearGradient id="sdg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#1d6fb8" />
-          <stop offset="1" stopColor="#2aa8e0" />
-        </linearGradient>
-      </defs>
-      <rect width="32" height="32" rx="9" fill="url(#sdg)" />
-      <path
-        d="M21.5 11.2 C20.3 9.9 18.4 9.2 16.2 9.2 C13.2 9.2 11.2 10.7 11.2 12.9 C11.2 15.1 13 16 16.2 16.7 C19.6 17.5 21.4 18.4 21.4 20.7 C21.4 23 19.2 24.5 16 24.5 C13.7 24.5 11.7 23.7 10.4 22.2"
-        fill="none"
-        stroke="#ffffff"
-        strokeWidth="2.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 export default async function SitePage({ params }: Props) {
   const { subdomain } = await params;
@@ -190,9 +169,15 @@ export default async function SitePage({ params }: Props) {
               <div style={badge}>{initial}</div>
             )}
             <div style={divider} />
-            <a href="https://sudros.id" style={sudrosPill} aria-label="SUDROS">
-              <SudrosMark />
-              <span style={sudrosText}>SUDROS</span>
+            <a href="https://sudros.id" style={sudrosBox} aria-label="SUDROS">
+              <Image
+                src="/brand/sudros-logo.png"
+                alt="Logo SUDROS"
+                width={112}
+                height={70}
+                priority
+                style={sudrosImg}
+              />
             </a>
           </div>
           <h1 style={heroTitle}>{page.title}</h1>
@@ -305,4 +290,4 @@ export default async function SitePage({ params }: Props) {
       ) : null}
     </div>
   );
-                                    }
+  }
